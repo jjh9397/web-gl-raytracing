@@ -709,6 +709,9 @@ CScene.prototype.makeRayTracedImage = function () {
 		for (i = 0; i < this.imageBuffer.xSiz; i++) {	 // and the i-th pixel on that row,
 			
 			this.rayCamera.setEyeRay(this.eyeRay, i, j);						  // create ray for pixel (i,j)
+			// shade(eyeRay);
+
+
 			if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
 			hit = this.item[0].traceGrid(this.eyeRay);						// trace ray to the grid
 			if (hit == 0) {
@@ -718,7 +721,7 @@ CScene.prototype.makeRayTracedImage = function () {
 				vec4.copy(colr, this.item[0].lineColor);
 			}
 			else {
-				vec4.copy(colr, this.item[0].lineColor);
+				vec4.copy(colr, this.item[0].skyColor);
 			}
 			idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
 			this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
@@ -729,7 +732,21 @@ CScene.prototype.makeRayTracedImage = function () {
 	this.imageBuffer.float2int();		// create integer image from floating-point buffer.
 }
 
-function CHit() {
+CScene.prototype.shade = function (ray)
+{
+	var colr = vec4.create();
+	var hitList = new CHitList;
+	getFirstHit(ray, hitList);
+
+	if (hitList.numHits == 0)
+	{
+		return this.item[0].skyColor;
+	}
+	
+	
+}
+
+function CHit(time, object, isEntering, surface, point, normal) {
 //=============================================================================
 // Describes one ray/object intersection point that was found by 'tracing' one
 // ray through one shape (through a single CGeom object, held in the
@@ -739,12 +756,12 @@ function CHit() {
 // (CHit, CHitList classes are consistent with the 'HitInfo' and 'Intersection'
 // classes described in FS Hill, pg 746).
 
-	this.hitTime;
-	this.hitObject;
-	this.isEntering;
-	this.surface;
-	this.hitPoint;
-	this.hitNormal;
+	this.hitTime = time;
+	this.hitObject = object;
+	this.isEntering = isEntering;
+	this.surface = surface;
+	this.hitPoint = point;
+	this.hitNormal = normal;
 }
 
 const HITLSIT_MAX = 8;
