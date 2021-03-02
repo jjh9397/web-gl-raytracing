@@ -363,7 +363,7 @@ function CGeom(shapeSelect) {
 	// or box, just set the parameters in world2model matrix. Note that you can 
 	// scale the box or sphere differently in different directions, forming 
 	// ellipsoids for the unit sphere and rectangles (or prisms) from the unit box.
-	if (shapeSelect == undefined) shapeSelect = JT_GND_PLANE;	// default
+	if (shapeSelect == undefined) shapeSelect = JT_GNDPLANE;	// default
 	this.shapeType = shapeSelect;
 
 	this.world2model = mat4.create();	// the matrix used to transform rays from
@@ -682,7 +682,7 @@ function CScene() {
 	this.rayCamera = new CCamera();
 	this.eyeRay = new CRay();
 	this.eyeHits = new CHitList();
-	this.item = [];
+	this.item = [new CGeom[JT_GNDPLANE]];
 	this.meterials = [];
 	this.lights = [];
 }
@@ -697,18 +697,15 @@ function CHit() {
 // (CHit, CHitList classes are consistent with the 'HitInfo' and 'Intersection'
 // classes described in FS Hill, pg 746).
 
-	//
-	//
-	//
-	//
-	//  	YOU WRITE THIS!
-	//
-	//
-	//
-	//
-	//
+	this.hitTime;
+	this.hitObject;
+	this.isEntering;
+	this.surface;
+	this.hitPoint;
+	this.hitNormal;
 }
 
+const HITLSIT_MAX = 8;
 function CHitList() {
 //=============================================================================
 // Holds ALL ray/object intersection results from tracing a single ray(CRay)
@@ -722,15 +719,7 @@ function CHitList() {
 //      our current list in the pierce[] array. if iEnd=0, the list is empty.
 //     CAREFUL! *YOU* must prevent buffer overflow! Keep iEnd<= JT_HITLIST_MAX!
 //  -- 'iNearest' index selects the CHit object nearest the ray's origin point.
-	//
-	//
-	//
-	//
-	//  	YOU WRITE THIS!
-	//
-	//
-	//
-	//
-	//
+	this.numHits;
+	this.hitList = [];
 }
 
