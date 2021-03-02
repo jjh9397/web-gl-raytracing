@@ -617,7 +617,7 @@ CImgBuf.prototype.makeRayTracedImage = function () {
 	this.float2int();		// create integer image from floating-point buffer.
 }
 
-/*
+
 function CScene() {
 //=============================================================================
 // A complete ray tracer object prototype (formerly a C/C++ 'class').
@@ -678,17 +678,13 @@ function CScene() {
 									// (why?  JS uses 52-bit mantissa;
 									// 2^-52 = 2.22E-16, so 10^-15 gives a
 									// safety margin of 20:1 for small # calcs)
-	//
-	//
-	//
-	//
-	//
-	//  	YOU WRITE THIS!
-	//
-	//
-	//
-	//
-	//
+	this.imageBuffer = new CImgBuf(256, 256);
+	this.rayCamera = new CCamera();
+	this.eyeRay = new CRay();
+	this.eyeHits = new CHitList();
+	this.item = [];
+	this.meterials = [];
+	this.lights = [];
 }
 
 function CHit() {
@@ -737,4 +733,4 @@ function CHitList() {
 	//
 	//
 }
-*/
+
