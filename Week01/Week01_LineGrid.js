@@ -53,10 +53,10 @@ preView = new VBObox0();		// For WebGLpreview: holds one VBO and its shaders
 rayView = new VBObox1();		// for displaying the ray-tracing results.
 
 //-----------Ray Tracer Objects:---------------
-//var g_myPic = new CImgBuf(256,256); // Create a floating-point image-buffer 
+var g_myPic = new CImgBuf(256,256); // Create a floating-point image-buffer 
                         // object to hold the image created by 'g_myScene' object.
 
-//var g_myScene = new CScene(g_myPic); // Create our ray-tracing object; 
+var g_myScene = new CScene(g_myPic); // Create our ray-tracing object; 
                         // this contains our complete 3D scene & its camera 
                         // used to write a complete ray-traced image to the
                         // CImgBuf object 'g_myPic' given as argument.
@@ -79,7 +79,6 @@ var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our
 var g_angleNow0  =  0.0; 			  // Current rotation angle, in degrees.
 var g_angleRate0 = 45.0;				// Rotation angle rate, in degrees/second.
 */
-var g_myPic = new CImgBuf(256, 256);
 //--END---GLOBAL VARIABLES------------------------------------------------------
 
 function main() {
@@ -113,7 +112,7 @@ function main() {
   gui.init();                   // Register all Mouse & Keyboard Event-handlers
                                 // (see JT_GUIbox-Lib.js )
 
-test_glMatrix();	// Make sure you understand how glMatrix.js library works.
+//test_glMatrix();	// Make sure you understand how glMatrix.js library works.
 					// (open console to see what's printed there)
   // Initialize each of our 'vboBox' objects: 
   preView.init(gl);		// VBO + shaders + uniforms + attribs for WebGL preview
@@ -173,7 +172,7 @@ function print_mat4(a, nameStr) {
          + a[11].toFixed(res).padStart(pad, " ") + ', '
          + a[15].toFixed(res).padStart(pad, " ") + ']\n' );
 }
-
+/* 
 function test_glMatrix() {
 //=============================================================================
 // Make sure that the fast vector/matrix library we use is available and works 
@@ -315,7 +314,7 @@ function test_glMatrix() {
   print_mat4(outM4,"outM4==[trnM4][rotM4]");
   console.log(" xxxxxxxx NO! [trnM4][rotM4] IS NOT what we want.");
 
-}
+} */
 
 function drawAll() {
 //=============================================================================

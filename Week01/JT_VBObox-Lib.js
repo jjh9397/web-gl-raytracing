@@ -805,7 +805,7 @@ VBObox1.prototype.init = function() {
 
 
 //this.imgBuf.setTestPattern(3);
-g_myPic.makeRayTracedImage();
+g_myScene.makeRayTracedImage();
 //g_myPic.setTestPattern(3);
 
 this.imgXmax = g_myPic.xSiz;
