@@ -715,6 +715,11 @@ CScene.prototype.makeRayTracedImage = function () {
 			{
 				for (var subcol = 0; subcol < g_AAcode; subcol++)
 				{
+					if (g_isJitter)
+					{
+						start = offset * Math.random();
+					}
+
 					this.rayCamera.setEyeRay(this.eyeRay, i+start+(subcol*offset), j+start+(subrow*offset)); //.25, .75
 
 					if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
