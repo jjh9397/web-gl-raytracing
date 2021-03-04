@@ -705,11 +705,39 @@ CScene.prototype.makeRayTracedImage = function () {
 	var hit = 0;
 	var idx = 0;	// CImgBuf array index(i,j) == (j*this.xSiz +i)*this.pixSiz;
 	var i, j;
+	var offset = 1 / g_AAcode;
+	var start = offset/2;
+	console.log(offset);
+	console.log(start);
 	for (j = 0; j < this.imageBuffer.ySiz; j++) {     // for the j-th row of pixels.
 		for (i = 0; i < this.imageBuffer.xSiz; i++) {	 // and the i-th pixel on that row,
-			
-			this.rayCamera.setEyeRay(this.eyeRay, i, j);						  // create ray for pixel (i,j)
-			// shade(eyeRay);
+			for (var subrow = 0; subrow < g_AAcode; subrow++)
+			{
+				for (var subcol = 0; subcol < g_AAcode; subcol++)
+				{
+					this.rayCamera.setEyeRay(this.eyeRay, i+start+(subcol*offset), j+start+(subrow*offset)); //.25, .75
+
+					if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
+					if(i==0 && j==0) console.log('col number', i+start+(subcol*offset));
+					hit = this.item[0].traceGrid(this.eyeRay);						// trace ray to the grid
+					if (hit == 0) {
+						vec4.copy(colr, this.item[0].gapColor);
+					}
+					else if (hit == 1) {
+						vec4.copy(colr, this.item[0].lineColor);
+					}
+					else {
+						vec4.copy(colr, this.item[0].skyColor);
+					}
+					idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
+					this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
+					this.imageBuffer.fBuf[idx + 1] = colr[1];
+					this.imageBuffer.fBuf[idx + 2] = colr[2];
+				}
+			}
+/* 			
+			this.rayCamera.setEyeRay(this.eyeRay, i+offset, j+offset);  // create ray for pixel (i,j)
+			//colr = shade(eyeRay);
 
 
 			if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
@@ -726,7 +754,7 @@ CScene.prototype.makeRayTracedImage = function () {
 			idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
 			this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
 			this.imageBuffer.fBuf[idx + 1] = colr[1];
-			this.imageBuffer.fBuf[idx + 2] = colr[2];
+			this.imageBuffer.fBuf[idx + 2] = colr[2]; */
 		}
 	}
 	this.imageBuffer.float2int();		// create integer image from floating-point buffer.
@@ -742,7 +770,7 @@ CScene.prototype.shade = function (ray)
 	{
 		return this.item[0].skyColor;
 	}
-	
+
 	
 }
 

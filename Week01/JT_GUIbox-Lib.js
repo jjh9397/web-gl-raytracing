@@ -462,7 +462,7 @@ GUIbox.prototype.keyDown = function (kev) {
 			document.getElementById('KeyDown').innerHTML =
 				'GUIbox.KeyDown() t/T key: TRACE a new image!';	    // print on webpage,
 			console.log("t/T key: TRACE a new image!");         // print on console,
-			g_myPic.makeRayTracedImage();
+			g_myScene.makeRayTracedImage();
 			rayView.switchToMe(); // be sure OUR VBO & shaders are in use, then
       		rayView.adjust();
 			rayView.reload();     // re-transfer VBO contents and texture-map contents
