@@ -381,7 +381,7 @@ function CGeom(shapeSelect) {
 	// (use skyColor when ray does not hit anything, not even the ground-plane)
 }
 
-CGeom.prototype.traceGrid = function (inRay) {
+CGeom.prototype.traceGrid = function (inRay, inter) {
 	//=============================================================================
 	// Find intersection of CRay object 'inRay' with grid-plane at z== this.zGrid
 	// return -1 if ray MISSES the plane
@@ -423,13 +423,14 @@ CGeom.prototype.traceGrid = function (inRay) {
 	x = Math.abs(inRay.orig[0] + t0 * inRay.dir[0]);// / this.xgap;
 	y = Math.abs(inRay.orig[1] + t0 * inRay.dir[1]);// / this.ygap;
 	//z = zGrid
-	if (x % this.xgap < this.lineWidth) {
+	
+	if (x % this.xgap < this.lineWidth || y % this.ygap < this.lineWidth) {
+		inter.hitList[0] = new CHit(t0, this, true, 0, [x, y, this.zGrid], [0, 0, 1]);
+		inter.numHits = 1;
 		return 1;
 	}
-	if (y % this.ygap < this.lineWidth)
-	{
-		return 1;
-	}
+	inter.hitList[0] = new CHit(t0, this, true, 1, [x, y, this.zGrid], [0, 0, 1]);
+	inter.numHits = 1;
 	return 0;
 
 }
@@ -721,19 +722,20 @@ CScene.prototype.makeRayTracedImage = function () {
 					}
 
 					this.rayCamera.setEyeRay(this.eyeRay, i+start+(subcol*offset), j+start+(subrow*offset)); //.25, .75
-
-					if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
-					if(i==0 && j==0) console.log('col number', i+start+(subcol*offset));
-					hit = this.item[0].traceGrid(this.eyeRay);						// trace ray to the grid
-					if (hit == 0) {
-						vec4.copy(colr, this.item[0].gapColor);
-					}
-					else if (hit == 1) {
-						vec4.copy(colr, this.item[0].lineColor);
-					}
-					else {
-						vec4.copy(colr, this.item[0].skyColor);
-					}
+					colr = this.shade(this.eyeRay);
+					//if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
+					//if(i==0 && j==0) console.log('col number', i+start+(subcol*offset));
+					//var best = new CHitList();
+					//hit = this.item[0].traceGrid(this.eyeRay, best);						// trace ray to the grid
+					//if (hit == 0) {
+					//	vec4.copy(colr, this.item[0].gapColor);
+					//}
+					//else if (hit == 1) {
+					//	vec4.copy(colr, this.item[0].lineColor);
+					//}
+					//else {
+					//	vec4.copy(colr, this.item[0].skyColor);
+					//}
 					idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
 					this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
 					this.imageBuffer.fBuf[idx + 1] = colr[1];
@@ -768,15 +770,54 @@ CScene.prototype.makeRayTracedImage = function () {
 CScene.prototype.shade = function (ray)
 {
 	var colr = vec4.create();
-	var hitList = new CHitList;
-	getFirstHit(ray, hitList);
+	var best = new CHitList;
+	this.getFirstHit(ray, best);
 
-	if (hitList.numHits == 0)
+	if (best.numHits == 0)
 	{
 		return this.item[0].skyColor;
 	}
+//for each item
+console.log("hit");
+	if (best.hitList[0].hitObject.surface == 0)
+	{
+		vec4.copy(colr, best.hitList[0].hitObject.lineColor);
+	}
+	else
+	{
+		vec4.copy(colr, best.hitList[0].hitObject.gapColor);
+	}
+	return colr;
+}
 
-	
+CScene.prototype.getFirstHit = function (ray, best)
+{
+	var inter = new CHitList();
+	best.numHits = 0;
+	for (var i = 0; i < this.item.length; i++)
+	{
+		hit = this.item[i].traceGrid(ray, inter);
+		if (hit < 0)
+		{
+			continue;
+		}
+		if (best.numHits == 0 || 
+			inter.hitList[0].hitTime < best.hitList[0].hitTime) {
+
+			best = inter;
+		}
+	}
+	//this.item.array.forEach(element => {
+	//	hit = element.traceGrid(ray, inter);
+	//	if (hit < 0) {
+	//		//continue;
+	//	}
+	//	if (best.numHits == 0 || 
+	//		inter.hitList[0].hitTime < best.hitList[0].hitTime) {
+	//			best = inter;
+	//	}
+	//});
+
 }
 
 function CHit(time, object, isEntering, surface, point, normal) {
@@ -811,7 +852,7 @@ function CHitList() {
 //      our current list in the pierce[] array. if iEnd=0, the list is empty.
 //     CAREFUL! *YOU* must prevent buffer overflow! Keep iEnd<= JT_HITLIST_MAX!
 //  -- 'iNearest' index selects the CHit object nearest the ray's origin point.
-	this.numHits;
+	this.numHits = 0;
 	this.hitList = [];
 }
 
