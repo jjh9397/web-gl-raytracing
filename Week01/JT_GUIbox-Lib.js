@@ -184,16 +184,16 @@ GUIbox.prototype.init = function () {
 		'Mouse Drag totals (CVV coords):\t' +
 		this.xMdragTot.toFixed(5) + ', \t' + this.yMdragTot.toFixed(5);
 
-	this.eyePoint = vec3.fromValues(0.0, 10.0, 1.0);
-	this.upVector = vec3.fromValues(0.0, 0.0, 1.0);
+	this.eyePoint = vec4.fromValues(0.0, 10.0, 1.0, 1.0);
+	this.upVector = vec4.fromValues(0.0, 0.0, 1.0, 0.0);
 	this.theta = 270;
-	this.lookPoint = vec3.fromValues(0.0, 9.0, .8);
+	this.lookPoint = vec4.fromValues(0.0, 9.0, .8, 1.0);
 
-	this.forward = vec3.create();
+	this.forward = vec4.create();
 	vec3.subtract(this.forward, this.lookPoint, this.eyePoint);
 	vec3.normalize(this.forward, this.forward);
 
-	this.strafe = vec3.create();
+	this.strafe = vec4.create();
 	vec3.cross(this.strafe, this.upVector, this.forward);
 	vec3.normalize(this.strafe, this.strafe);
 }

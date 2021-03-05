@@ -252,16 +252,18 @@ CCamera.prototype.rayPerspective = function (fovy, aspect, zNear) {
 	this.iNear = zNear;
 	this.iTop = Math.tan(.5 * fovy * (Math.PI / 180.0)) * zNear; //need to convert fovy to radians
 	this.iBot = -this.iTop;
-	this.iRight = iTop * aspect;
-	this.iLeft = -iRight;
+	this.iRight = this.iTop * aspect;
+	this.iLeft = -this.iRight;
 }
 
-CCamera.prototype.rayLookAt = function (eyePt, aimPt, upVec) {
-	vec3.sub(this.nAxis, eyePt, aimPt);
-	vec3.normalize(this.nAxis, this.nAxis);
+CCamera.prototype.rayLookAt = function (neyePt, naimPt, nupVec) {
+	this.eyePt = neyePt;
+	
+	vec4.sub(this.nAxis, this.eyePt, naimPt);
+	vec4.normalize(this.nAxis, this.nAxis);
 
-	vec3.cross(this.uAxis, upVec, this.nAxis);
-	vec3.normalize(this.uAxis, this.uAxis);
+	vec3.cross(this.uAxis, nupVec, this.nAxis);
+	vec4.normalize(this.uAxis, this.uAxis);
 
 	vec3.cross(this.vAxis, this.nAxis, this.uAxis);
 }
@@ -331,14 +333,15 @@ CCamera.prototype.printMe = function () {
 //=============================================================================
 // Allowable values for CGeom.shapeType variable.  Add some of your own!
 const JT_GNDPLANE = 0;    // An endless 'ground plane' surface.
-const JT_SPHERE = 1;    // A sphere.
-const JT_BOX = 2;    // An axis-aligned cube.
-const JT_CYLINDER = 3;    // A cylinder with user-settable radius at each end
-// and user-settable length.  radius of 0 at either
-// end makes a cone; length of 0 with nonzero
-// radius at each end makes a disk.
-const JT_TRIANGLE = 4;    // a triangle with 3 vertices.
-const JT_BLOBBIES = 5;    // Implicit surface:Blinn-style Gaussian 'blobbies'.
+const JT_DISK     = 1;
+const JT_SPHERE   = 2;    // A sphere.
+const JT_BOX      = 3;    // An axis-aligned cube.
+const JT_CYLINDER = 4;    // A cylinder with user-settable radius at each end
+                        // and user-settable length.  radius of 0 at either
+                        // end makes a cone; length of 0 with nonzero
+                        // radius at each end makes a disk.
+const JT_TRIANGLE = 5;    // a triangle with 3 vertices.
+const JT_BLOBBIES = 6;    // Implicit surface:Blinn-style Gaussian 'blobbies'.
 
 
 function CGeom(shapeSelect) {
@@ -364,9 +367,9 @@ function CGeom(shapeSelect) {
 	this.shapeType = shapeSelect;
 	switch (shapeSelect) {
 		case JT_GNDPLANE:
-			this.traceMe = function (inR, hit) { this.traceGrid(inR, hit); }; break;
+			this.traceMe = function (inRay, inter) { this.traceGrid(inRay, inter); }; break;
 		case JT_DISK:
-			this.traceMe = function (inR, hit) { this.traceDisk(inR, hit); }; break;
+			this.traceMe = function (inRay, inter) { this.traceDisk(inRay, inter); }; break;
 		case JT_SPHERE:
 			this.traceMe = function (inR, hit) { this.traceSphere(inR, hit); }; break;
 		case JT_BOX:
@@ -380,18 +383,17 @@ function CGeom(shapeSelect) {
 		default:
 			console.log("CGeom() constructor: ERROR! INVALID shapeSelect:", shapeSelect);
 			return;
-			break;
 	}
 	this.world2model = mat4.create();	// the matrix used to transform rays from
 	// 'world' coord system to 'model' coords;
 	// Use this to set shape size, position,
 	// orientation, and squash/stretch amount.
 	// Ground-plane 'Line-grid' parameters:
-	this.normal2world = mat4.create();    // == worldRay2model^T
-                                    // This matrix transforms MODEL-space
-                                    // normals (where they're easy to find)
-                                    // to WORLD-space coords (where we need
-                                    // them for lighting calcs.)
+	this.normal2world = mat4.create();    // == world2model^T
+	// This matrix transforms MODEL-space
+	// normals (where they're easy to find)
+	// to WORLD-space coords (where we need
+	// them for lighting calcs.)
 	this.zGrid = -0.0;	// create line-grid on the unbounded plane at z=zGrid
 	this.xgap = 1.0;	// line-to-line spacing
 	this.ygap = 1.0;
@@ -405,28 +407,28 @@ function CGeom(shapeSelect) {
 
 CGeom.prototype.setIdent = function () {
 	//==============================================================================
-	// Discard worldRay2model contents, replace with identity matrix (world==model).
-	mat4.identity(this.worldRay2model);
+	// Discard world2model contents, replace with identity matrix (world==model).
+	mat4.identity(this.world2model);
 	mat4.identity(this.normal2world);
 }
 
 CGeom.prototype.rayTranslate = function (x, y, z) {
 	//==============================================================================
-	//  Translate ray-tracing's current drawing axes (defined by worldRay2model),
+	//  Translate ray-tracing's current drawing axes (defined by world2model),
 	//  by the vec3 'offV3' vector amount
 	var a = mat4.create();   // construct INVERSE translation matrix [T^-1]
 	a[12] = -x; // x  
 	a[13] = -y; // y
 	a[14] = -z; // z.
 	//print_mat4(a,'translate()');
-	mat4.multiply(this.worldRay2model,      // [new] =
-		a, this.worldRay2model);  // =[T^-1]*[OLD]
-	mat4.transpose(this.normal2world, this.worldRay2model); // model normals->world
+	mat4.multiply(this.world2model,      // [new] =
+		a, this.world2model);  // =[T^-1]*[OLD]
+	mat4.transpose(this.normal2world, this.world2model); // model normals->world
 }
 
 CGeom.prototype.rayRotate = function (rad, ax, ay, az) {
 	//==============================================================================
-	// Rotate ray-tracing's current drawing axes (defined by worldRay2model) around
+	// Rotate ray-tracing's current drawing axes (defined by world2model) around
 	// the vec3 'axis' vector by 'rad' radians.
 	// (almost all of this copied directly from glMatrix mat4.rotate() function)
 	var x = ax, y = ay, z = az,
@@ -457,15 +459,15 @@ CGeom.prototype.rayRotate = function (rad, ax, ay, az) {
 	b[2] = b20; b[6] = b21; b[10] = b22; b[14] = 0.0; // row2
 	b[3] = 0.0; b[7] = 0.0; b[11] = 0.0; b[15] = 1.0; // row3
 	//    print_mat4(b,'rotate()');
-	mat4.multiply(this.worldRay2model,      // [new] =
-		b, this.worldRay2model);  // [R^-1][old]
-	mat4.transpose(this.normal2world, this.worldRay2model); // model normals->world
+	mat4.multiply(this.world2model,      // [new] =
+		b, this.world2model);  // [R^-1][old]
+	mat4.transpose(this.normal2world, this.world2model); // model normals->world
 
 }
 
 CGeom.prototype.rayScale = function (sx, sy, sz) {
 	//==============================================================================
-	//  Scale ray-tracing's current drawing axes (defined by worldRay2model),
+	//  Scale ray-tracing's current drawing axes (defined by world2model),
 	//  by the vec3 'scl' vector amount
 	if (Math.abs(sx) < glMatrix.GLMAT_EPSILON ||
 		Math.abs(sy) < glMatrix.GLMAT_EPSILON ||
@@ -478,11 +480,11 @@ CGeom.prototype.rayScale = function (sx, sy, sz) {
 	c[5] = 1 / sy; // y
 	c[10] = 1 / sz; // z.
 	//  print_mat4(c, 'scale()')'
-	mat4.multiply(this.worldRay2model,      // [new] =
-		c, this.worldRay2model);  // =[S^-1]*[OLD]
-	mat4.transpose(this.normal2world, this.worldRay2model); // model normals->world
+	mat4.multiply(this.world2model,      // [new] =
+		c, this.world2model);  // =[S^-1]*[OLD]
+	mat4.transpose(this.normal2world, this.world2model); // model normals->world
 }
-
+var g_flag = 0;
 CGeom.prototype.traceGrid = function (inRay, inter) {
 	//=============================================================================
 	// Find intersection of CRay object 'inRay' with grid-plane at z== this.zGrid
@@ -514,27 +516,94 @@ CGeom.prototype.traceGrid = function (inRay, inter) {
 	//            (y/ygap) has fractional part < linewidth), you hit a line on
 	//            the grid. Use 'lineColor.
 	//        otherwise, the ray hit BETWEEN the lines; use 'gapColor'
+	var rayT = new CRay();
+	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
+  vec4.copy(rayT.dir, inRay.dir);
+  if (g_flag < 1)
+	{
+		console.log(rayT.orig);
+		console.log(inRay.orig);
+		g_flag++;
+	}
+	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
+	vec4.transformMat4(rayT.dir, inRay.dir, this.world2model);
+	
+	
+	//vec4.copy(rayT.orig, inRay.orig);   // copy (if we're not going to transform)
+  //vec4.copy(rayT.dir, inRay.dir);
 
-	var t0 = (this.zGrid - inRay.orig[2]) / inRay.dir[2];
+	var t0 = (this.zGrid - rayT.orig[2]) / rayT.dir[2];
 	var x;
 	var y;
 	if (t0 < 0) {
 		return -1;
 	}
 
-	x = Math.abs(inRay.orig[0] + t0 * inRay.dir[0]);// / this.xgap;
-	y = Math.abs(inRay.orig[1] + t0 * inRay.dir[1]);// / this.ygap;
+	x = Math.abs(rayT.orig[0] + t0 * rayT.dir[0]);// / this.xgap;
+	y = Math.abs(rayT.orig[1] + t0 * rayT.dir[1]);// / this.ygap;
 	//z = zGrid
 
 	if (x % this.xgap < this.lineWidth || y % this.ygap < this.lineWidth) {
-		var chit = new CHit(t0, this, true, 0, [x, y, this.zGrid], [0, 0, 1]);
+		var chit = new CHit(t0, this, true, 0,vec4.fromValues(x,y,this.zGrid), vec4.fromValues(0.0,0.0,1.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0));
 		inter.unshift(chit);
 		return 1;
 	}
-	var chit = new CHit(t0, this, true, 1, [x, y, this.zGrid], [0, 0, 1]);
+	var chit = new CHit(t0, this, true, 1, vec4.fromValues(x,y,this.zGrid), vec4.fromValues(0.0,0.0,1.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0));
 	inter.unshift(chit);
 	return 0;
 
+}
+
+CGeom.prototype.traceDisk = function (inRay, inter) {
+	this.diskRad = 2.0;
+	var xdgap = this.xgap * 61 / 107;
+	var ydgap = this.ygap * 61 / 107;
+	// disk line-width is set to 3* lineWidth, and it swaps lineColor & gapColor.
+	var dwid = 0.3;//this.lineWidth*3.0;
+
+	//------------------ NEW!! transform 'inRay' by this.worldRay2model matrix;
+	var rayT = new CRay();    // create a local transformed-ray variable.
+	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
+	vec4.copy(rayT.dir, inRay.dir);
+
+	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
+	vec4.transformMat4(rayT.dir, inRay.dir, this.world2model);
+
+	var t0 = -rayT.orig[2]/rayT.dir[2];
+
+	if (t0 < 0)
+	{
+		return -1;
+	}
+
+	var modelHit = vec4.create();
+	if(modelHit[0]*modelHit[0] + modelHit[1]*modelHit[1] > this.diskRad*this.diskRad)  {     // ?Did ray hit within disk radius?
+    	return -1;
+	}
+
+	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+	chit.hitTime = t0;
+	chit.hitObject = this;
+	vec4.copy(chit.modelHitPoint, modelHit);  // record the model-space hit-pt, and
+  vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+  vec4.negate(chit.viewN, inRay.dir);
+  vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
+  vec4.transformMat4(chit.hitNormal, vec4.fromValues(0,0,1,0), this.normal2world);
+  vec4.normalize(chit.hitNormal, chit.hitNormal);
+	
+  var loc = chit.modelHitPoint[0] / xdgap;     // how many 'xdgaps' from the origin?
+  if(chit.modelHitPoint[0] < 0) loc = -loc;    // keep >0 to form double-width line at yaxis.
+  if(loc%1 < dwid) {    // hit a line of constant-x?
+    chit.surface =  0;       // yes.
+  }
+  loc = chit.modelHitPoint[1] / ydgap;         // how many 'ydgaps' from origin?
+  if(chit.modelHitPoint[1] < 0) loc = -loc;    // keep >0 to form double-width line at xaxis.
+  if(loc%1 < dwid) {   // hit a line of constant-y?
+    chit.surface = 0;       // yes.
+  }
+  chit.surface = 1;         // No.
+  inter.unshift(chit); 
+  return;
 }
 
 function CImgBuf(wide, tall) {
@@ -785,7 +854,10 @@ function CScene(scene) {
 	this.rayCamera = new CCamera();
 	this.eyeRay = new CRay();
 	this.eyeHits = new CHitList();
-	this.item = [new CGeom(JT_GNDPLANE)];
+	this.item = [];
+	this.item.push(new CGeom(JT_GNDPLANE));
+	this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
+	this.item.push(new CGeom(JT_DISK));
 	this.materials = [];
 	this.lights = [];
 }
@@ -824,24 +896,25 @@ CScene.prototype.makeRayTracedImage = function () {
 					colr = this.shade(this.eyeRay);
 					if (i == 0 && j == 0) console.log('eyeRay:', this.eyeRay); // print first ray
 					if (i == 0 && j == 0) console.log('col number', i + start + (subcol * offset));
-			//		var best = [];
-			//		hit = this.item[0].traceGrid(this.eyeRay, best);						// trace ray to the grid
-			//		if (hit == 0) {
-			//			vec4.copy(colr, this.item[0].gapColor);
-			//		}
-			//		else if (hit == 1) {
-			//			vec4.copy(colr, this.item[0].lineColor);
-			//		}
-			//		else {
-			//			vec4.copy(colr, this.item[0].skyColor);
-			//		}
+					//		var best = [];
+					//		hit = this.item[0].traceGrid(this.eyeRay, best);						// trace ray to the grid
+					//		if (hit == 0) {
+					//			vec4.copy(colr, this.item[0].gapColor);
+					//		}
+					//		else if (hit == 1) {
+					//			vec4.copy(colr, this.item[0].lineColor);
+					//		}
+					//		else {
+					//			vec4.copy(colr, this.item[0].skyColor);
+					//		}
 					//need to average colors. do average here, and move below code outside of subrow/col loops
-					idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
-					this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
-					this.imageBuffer.fBuf[idx + 1] = colr[1];
-					this.imageBuffer.fBuf[idx + 2] = colr[2];
+
 				}
 			}
+			idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
+			this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
+			this.imageBuffer.fBuf[idx + 1] = colr[1];
+			this.imageBuffer.fBuf[idx + 2] = colr[2];
 			/* 			
 						this.rayCamera.setEyeRay(this.eyeRay, i+offset, j+offset);  // create ray for pixel (i,j)
 						//colr = shade(eyeRay);
@@ -875,23 +948,27 @@ CScene.prototype.shade = function (ray) {
 	if (best.length == 0) {
 		return this.item[0].skyColor;
 	}
-//ADD for each item -------------------------------------------------- 
-	if (best[0].surface == 0) {
-		vec4.copy(colr, best[0].hitObject.lineColor);
+
+	for (let i = 0; i < this.item.length; i++) {
+		if (best[0].surface == 0) {
+			vec4.copy(colr, best[0].hitObject.lineColor);
+		}
+		else {
+			vec4.copy(colr, best[0].hitObject.gapColor);
+		}
+		return colr;
 	}
-	else {
-		vec4.copy(colr, best[0].hitObject.gapColor);
-	}
-	return colr;
+
 }
 
 CScene.prototype.getFirstHit = function (ray, best) {
 	var inter = [];
-
+//	best.length = 0; best needs to get emptied at some point; the continue is not happening
 	for (var i = 0; i < this.item.length; i++) {
 		hit = this.item[i].traceGrid(ray, inter);
 		if (hit < 0) {
 			continue;
+			
 		}
 		if (best.length == 0 ||
 			inter[0].hitTime < best[0].hitTime) {
@@ -912,7 +989,7 @@ CScene.prototype.getFirstHit = function (ray, best) {
 
 }
 
-function CHit(time, object, isEntering, surface, point, normal) {
+function CHit(time, object, isEntering, surface, point, normal, viewN, modelHitPoint) {
 	//=============================================================================
 	// Describes one ray/object intersection point that was found by 'tracing' one
 	// ray through one shape (through a single CGeom object, held in the
@@ -926,8 +1003,10 @@ function CHit(time, object, isEntering, surface, point, normal) {
 	this.hitObject = object;
 	this.isEntering = isEntering;
 	this.surface = surface;
-	this.hitPoint = point;
+	this.hitPoint = point; //WORLD point
 	this.hitNormal = normal;
+	this.viewN = viewN;
+	this.modelHitPoint = modelHitPoint;
 }
 
 const HITLSIT_MAX = 8;
