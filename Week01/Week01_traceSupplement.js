@@ -240,8 +240,7 @@ function CCamera() {
 	this.vfrac = (this.iTop - this.iBot) / this.ymax;	// pixel tile's height.
 }
 
-CCamera.prototype.rayFrustum = function(left, right, bot, top, near)
-{
+CCamera.prototype.rayFrustum = function (left, right, bot, top, near) {
 	this.iNear = near;
 	this.iLeft = left;
 	this.iRight = right;
@@ -249,17 +248,15 @@ CCamera.prototype.rayFrustum = function(left, right, bot, top, near)
 	this.iTop = top;
 }
 
-CCamera.prototype.rayPerspective = function(fovy, aspect, zNear)
-{
+CCamera.prototype.rayPerspective = function (fovy, aspect, zNear) {
 	this.iNear = zNear;
-	this.iTop = Math.tan(.5*fovy*(Math.PI/180.0)) * zNear; //need to convert fovy to radians
+	this.iTop = Math.tan(.5 * fovy * (Math.PI / 180.0)) * zNear; //need to convert fovy to radians
 	this.iBot = -this.iTop;
-	this.iRight = iTop*aspect;
-  	this.iLeft = -iRight;
+	this.iRight = iTop * aspect;
+	this.iLeft = -iRight;
 }
 
-CCamera.prototype.rayLookAt = function(eyePt, aimPt, upVec)
-{
+CCamera.prototype.rayLookAt = function (eyePt, aimPt, upVec) {
 	vec3.sub(this.nAxis, eyePt, aimPt);
 	vec3.normalize(this.nAxis, this.nAxis);
 
@@ -365,12 +362,36 @@ function CGeom(shapeSelect) {
 	// ellipsoids for the unit sphere and rectangles (or prisms) from the unit box.
 	if (shapeSelect == undefined) shapeSelect = JT_GNDPLANE;	// default
 	this.shapeType = shapeSelect;
-
+	switch (shapeSelect) {
+		case JT_GNDPLANE:
+			this.traceMe = function (inR, hit) { this.traceGrid(inR, hit); }; break;
+		case JT_DISK:
+			this.traceMe = function (inR, hit) { this.traceDisk(inR, hit); }; break;
+		case JT_SPHERE:
+			this.traceMe = function (inR, hit) { this.traceSphere(inR, hit); }; break;
+		case JT_BOX:
+			this.traceMe = function (inR, hit) { this.traceBox(inR, hit); }; break;
+		case JT_CYLINDER:
+			this.traceMe = function (inR, hit) { this.traceCyl(inR, hit); }; break;
+		case JT_TRIANGLE:
+			this.traceMe = function (inR, hit) { this.traceTri(inR, hit); }; break;
+		case JT_BLOBBY:
+			this.traceMe = function (inR, hit) { this.traceBlobby(inR, hit); }; break;
+		default:
+			console.log("CGeom() constructor: ERROR! INVALID shapeSelect:", shapeSelect);
+			return;
+			break;
+	}
 	this.world2model = mat4.create();	// the matrix used to transform rays from
 	// 'world' coord system to 'model' coords;
 	// Use this to set shape size, position,
 	// orientation, and squash/stretch amount.
 	// Ground-plane 'Line-grid' parameters:
+	this.normal2world = mat4.create();    // == worldRay2model^T
+                                    // This matrix transforms MODEL-space
+                                    // normals (where they're easy to find)
+                                    // to WORLD-space coords (where we need
+                                    // them for lighting calcs.)
 	this.zGrid = -0.0;	// create line-grid on the unbounded plane at z=zGrid
 	this.xgap = 1.0;	// line-to-line spacing
 	this.ygap = 1.0;
@@ -379,6 +400,87 @@ function CGeom(shapeSelect) {
 	this.gapColor = vec4.fromValues(0.9, 0.9, 0.9, 1.0);  // near-white
 	this.skyColor = vec4.fromValues(0.3, 1.0, 1.0, 1.0);  // cyan/bright blue 
 	// (use skyColor when ray does not hit anything, not even the ground-plane)
+	this.diskRad = 1.5;
+}
+
+CGeom.prototype.setIdent = function () {
+	//==============================================================================
+	// Discard worldRay2model contents, replace with identity matrix (world==model).
+	mat4.identity(this.worldRay2model);
+	mat4.identity(this.normal2world);
+}
+
+CGeom.prototype.rayTranslate = function (x, y, z) {
+	//==============================================================================
+	//  Translate ray-tracing's current drawing axes (defined by worldRay2model),
+	//  by the vec3 'offV3' vector amount
+	var a = mat4.create();   // construct INVERSE translation matrix [T^-1]
+	a[12] = -x; // x  
+	a[13] = -y; // y
+	a[14] = -z; // z.
+	//print_mat4(a,'translate()');
+	mat4.multiply(this.worldRay2model,      // [new] =
+		a, this.worldRay2model);  // =[T^-1]*[OLD]
+	mat4.transpose(this.normal2world, this.worldRay2model); // model normals->world
+}
+
+CGeom.prototype.rayRotate = function (rad, ax, ay, az) {
+	//==============================================================================
+	// Rotate ray-tracing's current drawing axes (defined by worldRay2model) around
+	// the vec3 'axis' vector by 'rad' radians.
+	// (almost all of this copied directly from glMatrix mat4.rotate() function)
+	var x = ax, y = ay, z = az,
+		len = Math.sqrt(x * x + y * y + z * z),
+		s, c, t,
+		b00, b01, b02,
+		b10, b11, b12,
+		b20, b21, b22;
+	if (Math.abs(len) < glMatrix.GLMAT_EPSILON) {
+		console.log("CGeom.rayRotate() ERROR!!! zero-length axis vector!!");
+		return null;
+	}
+	len = 1 / len;
+	x *= len;
+	y *= len;
+	z *= len;
+
+	s = Math.sin(-rad);     // INVERSE rotation; use -rad, not rad
+	c = Math.cos(-rad);
+	t = 1 - c;
+	// Construct the elements of the 3x3 rotation matrix. b_rowCol
+	b00 = x * x * t + c; b01 = y * x * t + z * s; b02 = z * x * t - y * s;
+	b10 = x * y * t - z * s; b11 = y * y * t + c; b12 = z * y * t + x * s;
+	b20 = x * z * t + y * s; b21 = y * z * t - x * s; b22 = z * z * t + c;
+	var b = mat4.create();  // build 4x4 rotation matrix from these
+	b[0] = b00; b[4] = b01; b[8] = b02; b[12] = 0.0; // row0
+	b[1] = b10; b[5] = b11; b[9] = b12; b[13] = 0.0; // row1
+	b[2] = b20; b[6] = b21; b[10] = b22; b[14] = 0.0; // row2
+	b[3] = 0.0; b[7] = 0.0; b[11] = 0.0; b[15] = 1.0; // row3
+	//    print_mat4(b,'rotate()');
+	mat4.multiply(this.worldRay2model,      // [new] =
+		b, this.worldRay2model);  // [R^-1][old]
+	mat4.transpose(this.normal2world, this.worldRay2model); // model normals->world
+
+}
+
+CGeom.prototype.rayScale = function (sx, sy, sz) {
+	//==============================================================================
+	//  Scale ray-tracing's current drawing axes (defined by worldRay2model),
+	//  by the vec3 'scl' vector amount
+	if (Math.abs(sx) < glMatrix.GLMAT_EPSILON ||
+		Math.abs(sy) < glMatrix.GLMAT_EPSILON ||
+		Math.abs(sz) < glMatrix.GLMAT_EPSILON) {
+		console.log("CGeom.rayScale() ERROR!! zero-length scale!!!");
+		return null;
+	}
+	var c = mat4.create();   // construct INVERSE scale matrix [S^-1]
+	c[0] = 1 / sx; // x  
+	c[5] = 1 / sy; // y
+	c[10] = 1 / sz; // z.
+	//  print_mat4(c, 'scale()')'
+	mat4.multiply(this.worldRay2model,      // [new] =
+		c, this.worldRay2model);  // =[S^-1]*[OLD]
+	mat4.transpose(this.normal2world, this.worldRay2model); // model normals->world
 }
 
 CGeom.prototype.traceGrid = function (inRay, inter) {
@@ -423,14 +525,14 @@ CGeom.prototype.traceGrid = function (inRay, inter) {
 	x = Math.abs(inRay.orig[0] + t0 * inRay.dir[0]);// / this.xgap;
 	y = Math.abs(inRay.orig[1] + t0 * inRay.dir[1]);// / this.ygap;
 	//z = zGrid
-	
+
 	if (x % this.xgap < this.lineWidth || y % this.ygap < this.lineWidth) {
-		inter.hitList[0] = new CHit(t0, this, true, 0, [x, y, this.zGrid], [0, 0, 1]);
-		inter.numHits = 1;
+		var chit = new CHit(t0, this, true, 0, [x, y, this.zGrid], [0, 0, 1]);
+		inter.unshift(chit);
 		return 1;
 	}
-	inter.hitList[0] = new CHit(t0, this, true, 1, [x, y, this.zGrid], [0, 0, 1]);
-	inter.numHits = 1;
+	var chit = new CHit(t0, this, true, 1, [x, y, this.zGrid], [0, 0, 1]);
+	inter.unshift(chit);
 	return 0;
 
 }
@@ -572,7 +674,7 @@ CImgBuf.prototype.printPixAt = function (xpix, ypix) {
 	//
 	//
 }
-
+/* 
 CImgBuf.prototype.makeRayTracedImage = function () {
 	//=============================================================================
 	// TEMPORARY!!!! 
@@ -596,9 +698,9 @@ CImgBuf.prototype.makeRayTracedImage = function () {
 	var i, j;
 	for (j = 0; j < this.ySiz; j++) {     // for the j-th row of pixels.
 		for (i = 0; i < this.xSiz; i++) {	 // and the i-th pixel on that row,
-			
+
 			myCam.setEyeRay(eyeRay, i, j);						  // create ray for pixel (i,j)
-			if(i==0 && j==0) console.log('eyeRay:', eyeRay); // print first ray
+			if (i == 0 && j == 0) console.log('eyeRay:', eyeRay); // print first ray
 			hit = myGrid.traceGrid(eyeRay);						// trace ray to the grid
 			if (hit == 0) {
 				vec4.copy(colr, myGrid.gapColor);
@@ -617,68 +719,68 @@ CImgBuf.prototype.makeRayTracedImage = function () {
 	}
 	this.float2int();		// create integer image from floating-point buffer.
 }
-
+ */
 
 function CScene(scene) {
-//=============================================================================
-// A complete ray tracer object prototype (formerly a C/C++ 'class').
-//      My code uses just one CScene instance (g_myScene) to describe the entire
-//			ray tracer.  Note that I could add more CScene objects to make multiple
-//			ray tracers (perhaps on different threads or processors) and then
-//			combine their results into a giant video sequence, a giant image, or
-//			use one ray-traced result as input to make the next ray-traced result.
-//
-//The CScene class includes:
-// One CImgBuf object that holds a floating-point RGB image, and uses that
-//		  image to create a corresponding 8,8,8 bit RGB image suitable for WebGL
-//			display as a texture-map in an HTML-5 canvas object within a webpage.
-// One CCamera object that describes an antialiased ray-tracing camera;
-//      in my code, it is the 'rayCam' variable within the CScene prototype.
-//      The CCamera class defines the SOURCE of rays we trace from our eyepoint
-//      into the scene, and uses those rays to set output image pixel values.
-// One CRay object 'eyeRay' that describes the ray we're currently tracing from
-//      eyepoint into the scene.
-// One CHitList object 'eyeHits' that describes each 3D point where 'eyeRay'
-//      pierces a shape (a CGeom object) in our CScene.  Each CHitList object
-//      in our ray-tracer holds a COLLECTION of hit-points (CHit objects) for a
-//      ray, and keeps track of which hit-point is closest to the camera. That
-//			collection is held in the eyeHits member of the CScene class.
-// a COLLECTION of CGeom objects: each describe an individual visible thing; a
-//      single item or thing we may see in the scene.  That collection is the
-//			held in the 'item[]' array within the CScene class.
-//      		Each CGeom element in the 'item[]' array holds one shape on-screen.
-//      To see three spheres and a ground-plane we'll have 4 CGeom objects, one
-//			for each of the spheres, and one for the ground-plane.
-//      Each CGeom obj. includes a 'matlIndex' index number that selects which
-//      material to use in rendering the CGeom shape. I assume ALL lights in a
-//      scene may affect ALL CGeom shapes, but you may wish to add an light-src
-//      index to permit each CGeom object to choose which lights(s) affect it.
-// a COLLECTION of CMatl objects; each describes one light-modifying material'
-//      hold this collection in  'matter[]' array within the CScene class).
-//      Each CMatl element in the 'matter[]' array describes one particular
-//      individual material we will use for one or more CGeom shapes. We may
-//      have one CMatl object that describes clear glass, another for a
-//      Phong-shaded brass-metal material, another for a texture-map, another
-//      for a bump mapped material for the surface of an orange (fruit),
-//      another for a marble-like material defined by Perlin noise, etc.
-// a COLLECTION of CLight objects that each describe one light source.
-//			That collection is held in the 'lamp[]' array within the CScene class.
-//      Note that I apply all lights to all CGeom objects.  You may wish to add
-//      an index to the CGeom class to select which lights affect each item.
-//
-// The default CScene constructor creates a simple scene that will create a
-// picture if traced:
-// --rayCam with +/- 45 degree Horiz field of view, aimed at the origin from
-// 			world-space location (0,0,5)
-// --item[0] is a unit sphere at the origin that uses matter[0] material;
-// --matter[0] material is a shiny red Phong-lit material, lit by lamp[0];
-// --lamp[0] is a point-light source at location (5,5,5).
+	//=============================================================================
+	// A complete ray tracer object prototype (formerly a C/C++ 'class').
+	//      My code uses just one CScene instance (g_myScene) to describe the entire
+	//			ray tracer.  Note that I could add more CScene objects to make multiple
+	//			ray tracers (perhaps on different threads or processors) and then
+	//			combine their results into a giant video sequence, a giant image, or
+	//			use one ray-traced result as input to make the next ray-traced result.
+	//
+	//The CScene class includes:
+	// One CImgBuf object that holds a floating-point RGB image, and uses that
+	//		  image to create a corresponding 8,8,8 bit RGB image suitable for WebGL
+	//			display as a texture-map in an HTML-5 canvas object within a webpage.
+	// One CCamera object that describes an antialiased ray-tracing camera;
+	//      in my code, it is the 'rayCam' variable within the CScene prototype.
+	//      The CCamera class defines the SOURCE of rays we trace from our eyepoint
+	//      into the scene, and uses those rays to set output image pixel values.
+	// One CRay object 'eyeRay' that describes the ray we're currently tracing from
+	//      eyepoint into the scene.
+	// One CHitList object 'eyeHits' that describes each 3D point where 'eyeRay'
+	//      pierces a shape (a CGeom object) in our CScene.  Each CHitList object
+	//      in our ray-tracer holds a COLLECTION of hit-points (CHit objects) for a
+	//      ray, and keeps track of which hit-point is closest to the camera. That
+	//			collection is held in the eyeHits member of the CScene class.
+	// a COLLECTION of CGeom objects: each describe an individual visible thing; a
+	//      single item or thing we may see in the scene.  That collection is the
+	//			held in the 'item[]' array within the CScene class.
+	//      		Each CGeom element in the 'item[]' array holds one shape on-screen.
+	//      To see three spheres and a ground-plane we'll have 4 CGeom objects, one
+	//			for each of the spheres, and one for the ground-plane.
+	//      Each CGeom obj. includes a 'matlIndex' index number that selects which
+	//      material to use in rendering the CGeom shape. I assume ALL lights in a
+	//      scene may affect ALL CGeom shapes, but you may wish to add an light-src
+	//      index to permit each CGeom object to choose which lights(s) affect it.
+	// a COLLECTION of CMatl objects; each describes one light-modifying material'
+	//      hold this collection in  'matter[]' array within the CScene class).
+	//      Each CMatl element in the 'matter[]' array describes one particular
+	//      individual material we will use for one or more CGeom shapes. We may
+	//      have one CMatl object that describes clear glass, another for a
+	//      Phong-shaded brass-metal material, another for a texture-map, another
+	//      for a bump mapped material for the surface of an orange (fruit),
+	//      another for a marble-like material defined by Perlin noise, etc.
+	// a COLLECTION of CLight objects that each describe one light source.
+	//			That collection is held in the 'lamp[]' array within the CScene class.
+	//      Note that I apply all lights to all CGeom objects.  You may wish to add
+	//      an index to the CGeom class to select which lights affect each item.
+	//
+	// The default CScene constructor creates a simple scene that will create a
+	// picture if traced:
+	// --rayCam with +/- 45 degree Horiz field of view, aimed at the origin from
+	// 			world-space location (0,0,5)
+	// --item[0] is a unit sphere at the origin that uses matter[0] material;
+	// --matter[0] material is a shiny red Phong-lit material, lit by lamp[0];
+	// --lamp[0] is a point-light source at location (5,5,5).
 
-  this.RAY_EPSILON = 1.0E-15;       // ray-tracer precision limits; treat
-									// any value smaller than this as zero.
-									// (why?  JS uses 52-bit mantissa;
-									// 2^-52 = 2.22E-16, so 10^-15 gives a
-									// safety margin of 20:1 for small # calcs)
+	this.RAY_EPSILON = 1.0E-15;       // ray-tracer precision limits; treat
+	// any value smaller than this as zero.
+	// (why?  JS uses 52-bit mantissa;
+	// 2^-52 = 2.22E-16, so 10^-15 gives a
+	// safety margin of 20:1 for small # calcs)
 	this.imageBuffer = scene;
 	this.rayCamera = new CCamera();
 	this.eyeRay = new CRay();
@@ -707,104 +809,94 @@ CScene.prototype.makeRayTracedImage = function () {
 	var idx = 0;	// CImgBuf array index(i,j) == (j*this.xSiz +i)*this.pixSiz;
 	var i, j;
 	var offset = 1 / g_AAcode;
-	var start = offset/2;
+	var start = offset / 2;
 	console.log(offset);
 	console.log(start);
 	for (j = 0; j < this.imageBuffer.ySiz; j++) {     // for the j-th row of pixels.
 		for (i = 0; i < this.imageBuffer.xSiz; i++) {	 // and the i-th pixel on that row,
-			for (var subrow = 0; subrow < g_AAcode; subrow++)
-			{
-				for (var subcol = 0; subcol < g_AAcode; subcol++)
-				{
-					if (g_isJitter)
-					{
+			for (var subrow = 0; subrow < g_AAcode; subrow++) {
+				for (var subcol = 0; subcol < g_AAcode; subcol++) {
+					if (g_isJitter) {
 						start = offset * Math.random();
 					}
 
-					this.rayCamera.setEyeRay(this.eyeRay, i+start+(subcol*offset), j+start+(subrow*offset)); //.25, .75
+					this.rayCamera.setEyeRay(this.eyeRay, i + start + (subcol * offset), j + start + (subrow * offset)); //.25, .75
 					colr = this.shade(this.eyeRay);
-					//if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
-					//if(i==0 && j==0) console.log('col number', i+start+(subcol*offset));
-					//var best = new CHitList();
-					//hit = this.item[0].traceGrid(this.eyeRay, best);						// trace ray to the grid
-					//if (hit == 0) {
-					//	vec4.copy(colr, this.item[0].gapColor);
-					//}
-					//else if (hit == 1) {
-					//	vec4.copy(colr, this.item[0].lineColor);
-					//}
-					//else {
-					//	vec4.copy(colr, this.item[0].skyColor);
-					//}
+					if (i == 0 && j == 0) console.log('eyeRay:', this.eyeRay); // print first ray
+					if (i == 0 && j == 0) console.log('col number', i + start + (subcol * offset));
+			//		var best = [];
+			//		hit = this.item[0].traceGrid(this.eyeRay, best);						// trace ray to the grid
+			//		if (hit == 0) {
+			//			vec4.copy(colr, this.item[0].gapColor);
+			//		}
+			//		else if (hit == 1) {
+			//			vec4.copy(colr, this.item[0].lineColor);
+			//		}
+			//		else {
+			//			vec4.copy(colr, this.item[0].skyColor);
+			//		}
+					//need to average colors. do average here, and move below code outside of subrow/col loops
 					idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
 					this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
 					this.imageBuffer.fBuf[idx + 1] = colr[1];
 					this.imageBuffer.fBuf[idx + 2] = colr[2];
 				}
 			}
-/* 			
-			this.rayCamera.setEyeRay(this.eyeRay, i+offset, j+offset);  // create ray for pixel (i,j)
-			//colr = shade(eyeRay);
-
-
-			if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
-			hit = this.item[0].traceGrid(this.eyeRay);						// trace ray to the grid
-			if (hit == 0) {
-				vec4.copy(colr, this.item[0].gapColor);
-			}
-			else if (hit == 1) {
-				vec4.copy(colr, this.item[0].lineColor);
-			}
-			else {
-				vec4.copy(colr, this.item[0].skyColor);
-			}
-			idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
-			this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
-			this.imageBuffer.fBuf[idx + 1] = colr[1];
-			this.imageBuffer.fBuf[idx + 2] = colr[2]; */
+			/* 			
+						this.rayCamera.setEyeRay(this.eyeRay, i+offset, j+offset);  // create ray for pixel (i,j)
+						//colr = shade(eyeRay);
+			
+			
+						if(i==0 && j==0) console.log('eyeRay:', this.eyeRay); // print first ray
+						hit = this.item[0].traceGrid(this.eyeRay);						// trace ray to the grid
+						if (hit == 0) {
+							vec4.copy(colr, this.item[0].gapColor);
+						}
+						else if (hit == 1) {
+							vec4.copy(colr, this.item[0].lineColor);
+						}
+						else {
+							vec4.copy(colr, this.item[0].skyColor);
+						}
+						idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
+						this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
+						this.imageBuffer.fBuf[idx + 1] = colr[1];
+						this.imageBuffer.fBuf[idx + 2] = colr[2]; */
 		}
 	}
 	this.imageBuffer.float2int();		// create integer image from floating-point buffer.
 }
 
-CScene.prototype.shade = function (ray)
-{
+CScene.prototype.shade = function (ray) {
 	var colr = vec4.create();
-	var best = new CHitList;
+	var best = [];
 	this.getFirstHit(ray, best);
 
-	if (best.numHits == 0)
-	{
+	if (best.length == 0) {
 		return this.item[0].skyColor;
 	}
-//for each item
-console.log("hit");
-	if (best.hitList[0].hitObject.surface == 0)
-	{
-		vec4.copy(colr, best.hitList[0].hitObject.lineColor);
+//ADD for each item -------------------------------------------------- 
+	if (best[0].surface == 0) {
+		vec4.copy(colr, best[0].hitObject.lineColor);
 	}
-	else
-	{
-		vec4.copy(colr, best.hitList[0].hitObject.gapColor);
+	else {
+		vec4.copy(colr, best[0].hitObject.gapColor);
 	}
 	return colr;
 }
 
-CScene.prototype.getFirstHit = function (ray, best)
-{
-	var inter = new CHitList();
-	best.numHits = 0;
-	for (var i = 0; i < this.item.length; i++)
-	{
+CScene.prototype.getFirstHit = function (ray, best) {
+	var inter = [];
+
+	for (var i = 0; i < this.item.length; i++) {
 		hit = this.item[i].traceGrid(ray, inter);
-		if (hit < 0)
-		{
+		if (hit < 0) {
 			continue;
 		}
-		if (best.numHits == 0 || 
-			inter.hitList[0].hitTime < best.hitList[0].hitTime) {
-
-			best = inter;
+		if (best.length == 0 ||
+			inter[0].hitTime < best[0].hitTime) {
+			best[0] = inter[0];
+			//console.log(best.length);
 		}
 	}
 	//this.item.array.forEach(element => {
@@ -821,14 +913,14 @@ CScene.prototype.getFirstHit = function (ray, best)
 }
 
 function CHit(time, object, isEntering, surface, point, normal) {
-//=============================================================================
-// Describes one ray/object intersection point that was found by 'tracing' one
-// ray through one shape (through a single CGeom object, held in the
-// CScene.item[] array).
-// CAREFUL! We don't use isolated CHit objects, but instead gather all the CHit
-// objects for one ray in one list held inside a CHitList object.
-// (CHit, CHitList classes are consistent with the 'HitInfo' and 'Intersection'
-// classes described in FS Hill, pg 746).
+	//=============================================================================
+	// Describes one ray/object intersection point that was found by 'tracing' one
+	// ray through one shape (through a single CGeom object, held in the
+	// CScene.item[] array).
+	// CAREFUL! We don't use isolated CHit objects, but instead gather all the CHit
+	// objects for one ray in one list held inside a CHitList object.
+	// (CHit, CHitList classes are consistent with the 'HitInfo' and 'Intersection'
+	// classes described in FS Hill, pg 746).
 
 	this.hitTime = time;
 	this.hitObject = object;
@@ -840,18 +932,18 @@ function CHit(time, object, isEntering, surface, point, normal) {
 
 const HITLSIT_MAX = 8;
 function CHitList() {
-//=============================================================================
-// Holds ALL ray/object intersection results from tracing a single ray(CRay)
-// sent through ALL shape-defining objects (CGeom) in in the item[] array in
-// our scene (CScene).  A CHitList object ALWAYS holds at least one valid CHit
-// 'hit-point', as we initialize the pierce[0] object to the CScene's
-//  background color.  Otherwise, each CHit element in the 'pierce[]' array
-// describes one point on the ray where it enters or leaves a CGeom object.
-// (each point is in front of the ray, not behind it; t>0).
-//  -- 'iEnd' index selects the next available CHit object at the end of
-//      our current list in the pierce[] array. if iEnd=0, the list is empty.
-//     CAREFUL! *YOU* must prevent buffer overflow! Keep iEnd<= JT_HITLIST_MAX!
-//  -- 'iNearest' index selects the CHit object nearest the ray's origin point.
+	//=============================================================================
+	// Holds ALL ray/object intersection results from tracing a single ray(CRay)
+	// sent through ALL shape-defining objects (CGeom) in in the item[] array in
+	// our scene (CScene).  A CHitList object ALWAYS holds at least one valid CHit
+	// 'hit-point', as we initialize the pierce[0] object to the CScene's
+	//  background color.  Otherwise, each CHit element in the 'pierce[]' array
+	// describes one point on the ray where it enters or leaves a CGeom object.
+	// (each point is in front of the ray, not behind it; t>0).
+	//  -- 'iEnd' index selects the next available CHit object at the end of
+	//      our current list in the pierce[] array. if iEnd=0, the list is empty.
+	//     CAREFUL! *YOU* must prevent buffer overflow! Keep iEnd<= JT_HITLIST_MAX!
+	//  -- 'iNearest' index selects the CHit object nearest the ray's origin point.
 	this.numHits = 0;
 	this.hitList = [];
 }
