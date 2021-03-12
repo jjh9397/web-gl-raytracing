@@ -365,7 +365,7 @@ function CGeom(shapeSelect) {
 	// ellipsoids for the unit sphere and rectangles (or prisms) from the unit box.
 	if (shapeSelect == undefined) shapeSelect = JT_GNDPLANE;	// default
 	this.shapeType = shapeSelect;
-	switch (shapeSelect) {
+	switch (this.shapeType) {
 		case JT_GNDPLANE:
 			this.traceMe = function (inRay, inter) { this.traceGrid(inRay, inter); }; break;
 		case JT_DISK:
@@ -860,7 +860,8 @@ function CScene(scene) {
 	this.item.push(new CGeom(JT_GNDPLANE));
 	this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
 	this.item.push(new CGeom(JT_DISK));
-	this.item[0].rayTranslate(0, 0, 5);
+	this.item[1].rayTranslate(0, 0, 4);
+	this.item.push(new CGeom(JT_GNDPLANE));
 	this.materials = [];
 	this.lights = [];
 }
@@ -973,7 +974,14 @@ CScene.prototype.getFirstHit = function (ray, best) {
 	var inter = [];
 //	best.length = 0; best needs to get emptied at some point; the continue is not happening
 	for (var i = 0; i < this.item.length; i++) {
-		hit = this.item[i].traceDisk(ray, inter);
+		if (this.item[i].shapeType == 0)
+		{
+			hit = this.item[i].traceGrid(ray, inter);
+		}
+		else
+		{
+			hit = this.item[i].traceDisk(ray, inter);
+		}
 		if (hit < 0) {
 			continue;
 			
