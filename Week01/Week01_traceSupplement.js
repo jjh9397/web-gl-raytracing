@@ -597,15 +597,74 @@ CGeom.prototype.traceDisk = function (inRay, inter) {
   if(chit.modelHitPoint[0] < 0) loc = -loc;    // keep >0 to form double-width line at yaxis.
   if(loc%1 < dwid) {    // hit a line of constant-x?
     chit.surface =  0;       // yes.
+	inter.unshift(chit); 
+  return 0;
   }
   loc = chit.modelHitPoint[1] / ydgap;         // how many 'ydgaps' from origin?
   if(chit.modelHitPoint[1] < 0) loc = -loc;    // keep >0 to form double-width line at xaxis.
   if(loc%1 < dwid) {   // hit a line of constant-y?
     chit.surface = 0;       // yes.
+	inter.unshift(chit); 
+  return 0;
   }
   chit.surface = 1;         // No.
   inter.unshift(chit); 
   return;
+}
+
+CGeom.prototype.traceSphere = function (inRay, inter) 
+{
+	// Half-Chord Method===================
+	//(see Ray-Tracing Lecture Notes D)
+	//for finding ray/sphere intersection
+	//=====================================
+	//------------------ Step 1: transform 'inRay' by this.worldRay2model matrix;
+	var rayT = new CRay();    // to create 'rayT', our local model-space ray.
+	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
+	vec4.copy(rayT.dir, inRay.dir);
+							  // (DON'T do this: rayT = inRay; // that sets rayT
+							  // as a REFERENCE to inRay. Any change to rayT is
+							  // also a change to inRay (!!).
+	vec4.transformMat4(rayT.orig, inRay.orig, this.worldRay2model);
+	vec4.transformMat4(rayT.dir,  inRay.dir,  this.worldRay2model);
+
+	//------------------ Step 2: Test 1st triangle. Did ray MISS sphere entirely?
+  	// Create r2s vector that reaches FROM ray's start-point TO the sphere center.
+  	//  (subtract: model-space origin POINT - rayT origin POINT):
+  	// (remember, in homogeneous coords w=1 for points, =0 for vectors)
+  	var r2s = vec4.create();
+  	vec4.subtract(r2s, vec4.fromValues(0,0,0,1), rayT.orig);
+  	// Find L2, the squared length of r2s, by dot-product with itself:
+  	var L2 = vec3.dot(r2s,r2s);   // NOTE: vec3.dot() IGNORES the 'w' values when 
+  	                              //  vec4 arguments.  !Good! I like glMatrix...
+  	// if L2 <=1.0, ray starts AT or INSIDE the unit sphere surface (!). 
+  	if(L2 <= 1.0) { // report error and quit.  LATER we can use this case to
+  	                // handle rays through transparent spheres.
+  	  console.log("CGeom.traceSphere() ERROR! rayT origin at or inside sphere!\n\n");
+  	  return;       // HINT: see comments at end of this function.
+  	}
+	
+	  // We now know L2 > 1.0; ray starts OUTSIDE the sphere.
+  // Now consider the path of rayT in model coords. It will either:
+  //  MISS the sphere entirely, or HIT the sphere at 2 points. Lets name the
+  // the line-segment of the ray between those 2 points as the 'chord', and note
+  // that the chord's mid-point is special; it is the point along the ray that 
+  // is closest to the sphere's center.
+  // At this chord midpoint, we define the rayT length as == tca.  
+  // Before we find tca, let's find a SCALED VERSION of tca, called 'tcaS'.
+  //      If we KNOW that rayT.dir is unit-length, then we could find tca by 
+  // taking the dot-product of rayT.dir & r2S, but we DON'T know -- so let's
+  // define the as-yet-unknown length of rayT.dir as 'length(tdir)'.  What we
+  // *DO* know is that tcaS == tca*length(tdir).  Let's find tcaS first:
+  var tcaS = vec3.dot(rayT.dir, r2s); // tcaS == SCALED tca;
+  
+  if(tcaS < 0.0) {      // Is the chord mid-point BEHIND the camera(where t<0)?
+    return -1;             // YES!  rayT didn't start inside the sphere, so if
+    // MISSED!          // the chord mid-point is behind the camera, then
+  }                     // the entire chord is behind the camera: NO hit-points!
+                        // Don't change myHit, don't do any further calcs. Bye!
+                        // Don't change myHit hMISS! sphere is BEHIND the ray! 
+						// No hit points. Bye!
 }
 
 function CImgBuf(wide, tall) {
