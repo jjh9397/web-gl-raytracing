@@ -886,6 +886,9 @@ CScene.prototype.makeRayTracedImage = function () {
 	console.log(start);
 	for (j = 0; j < this.imageBuffer.ySiz; j++) {     // for the j-th row of pixels.
 		for (i = 0; i < this.imageBuffer.xSiz; i++) {	 // and the i-th pixel on that row,
+			colr[0] = 0;
+			colr[1] = 0;
+			colr[2] = 0;
 			for (var subrow = 0; subrow < g_AAcode; subrow++) {
 				for (var subcol = 0; subcol < g_AAcode; subcol++) {
 					if (g_isJitter) {
@@ -893,7 +896,8 @@ CScene.prototype.makeRayTracedImage = function () {
 					}
 
 					this.rayCamera.setEyeRay(this.eyeRay, i + start + (subcol * offset), j + start + (subrow * offset)); //.25, .75
-					colr = this.shade(this.eyeRay);
+					//colr = this.shade(this.eyeRay);
+					vec4.add(colr, colr, this.shade(this.eyeRay));
 					if (i == 0 && j == 0) console.log('eyeRay:', this.eyeRay); // print first ray
 					if (i == 0 && j == 0) console.log('col number', i + start + (subcol * offset));
 					//		var best = [];
@@ -911,6 +915,11 @@ CScene.prototype.makeRayTracedImage = function () {
 
 				}
 			}
+			colr[0] = colr[0] / (g_AAcode*g_AAcode);
+			colr[1] = colr[1] / (g_AAcode*g_AAcode);
+			colr[2] = colr[2] / (g_AAcode*g_AAcode);
+			colr[3] = 1;
+
 			idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
 			this.imageBuffer.fBuf[idx] = colr[0];	// bright blue
 			this.imageBuffer.fBuf[idx + 1] = colr[1];
