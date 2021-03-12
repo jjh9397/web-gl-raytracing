@@ -363,27 +363,6 @@ function CGeom(shapeSelect) {
 	// or box, just set the parameters in world2model matrix. Note that you can 
 	// scale the box or sphere differently in different directions, forming 
 	// ellipsoids for the unit sphere and rectangles (or prisms) from the unit box.
-	if (shapeSelect == undefined) shapeSelect = JT_GNDPLANE;	// default
-	this.shapeType = shapeSelect;
-	switch (this.shapeType) {
-		case JT_GNDPLANE:
-			this.traceMe = function (inRay, inter) { this.traceGrid(inRay, inter); }; break;
-		case JT_DISK:
-			this.traceMe = function (inRay, inter) { this.traceDisk(inRay, inter); }; break;
-		case JT_SPHERE:
-			this.traceMe = function (inR, hit) { this.traceSphere(inR, hit); }; break;
-		case JT_BOX:
-			this.traceMe = function (inR, hit) { this.traceBox(inR, hit); }; break;
-		case JT_CYLINDER:
-			this.traceMe = function (inR, hit) { this.traceCyl(inR, hit); }; break;
-		case JT_TRIANGLE:
-			this.traceMe = function (inR, hit) { this.traceTri(inR, hit); }; break;
-		case JT_BLOBBY:
-			this.traceMe = function (inR, hit) { this.traceBlobby(inR, hit); }; break;
-		default:
-			console.log("CGeom() constructor: ERROR! INVALID shapeSelect:", shapeSelect);
-			return;
-	}
 	this.world2model = mat4.create();	// the matrix used to transform rays from
 	// 'world' coord system to 'model' coords;
 	// Use this to set shape size, position,
@@ -397,12 +376,42 @@ function CGeom(shapeSelect) {
 	this.zGrid = -0.0;	// create line-grid on the unbounded plane at z=zGrid
 	this.xgap = 1.0;	// line-to-line spacing
 	this.ygap = 1.0;
+	this.zgap = 1.0;
 	this.lineWidth = 0.1;	// fraction of xgap used for grid-line width
 	this.lineColor = vec4.fromValues(0.8, 0.1, 0.4, 1.0);  // RGBA green(A==opacity)
 	this.gapColor = vec4.fromValues(0.9, 0.9, 0.9, 1.0);  // near-white
 	this.skyColor = vec4.fromValues(0.3, 1.0, 1.0, 1.0);  // cyan/bright blue 
 	// (use skyColor when ray does not hit anything, not even the ground-plane)
 	this.diskRad = 1.5;
+	
+	if (shapeSelect == undefined) shapeSelect = JT_GNDPLANE;	// default
+	this.shapeType = shapeSelect;
+	switch (this.shapeType) {
+		case JT_GNDPLANE:
+			this.traceMe = function (inRay, inter) { this.traceGrid(inRay, inter); }; break;
+		case JT_DISK:
+			this.traceMe = function (inRay, inter) { this.traceDisk(inRay, inter); }; break;
+		case JT_SPHERE:
+			{
+			this.traceMe = function (inR, hit) { this.traceSphere(inR, hit); }; 
+			this.xgap = .25;	// line-to-line spacing
+			this.ygap = .25;
+			this.zgap = .25;
+			break;
+			}
+		case JT_BOX:
+			this.traceMe = function (inR, hit) { this.traceBox(inR, hit); }; break;
+		case JT_CYLINDER:
+			this.traceMe = function (inR, hit) { this.traceCyl(inR, hit); }; break;
+		case JT_TRIANGLE:
+			this.traceMe = function (inR, hit) { this.traceTri(inR, hit); }; break;
+		case JT_BLOBBY:
+			this.traceMe = function (inR, hit) { this.traceBlobby(inR, hit); }; break;
+		default:
+			console.log("CGeom() constructor: ERROR! INVALID shapeSelect:", shapeSelect);
+			return;
+	}
+
 }
 
 CGeom.prototype.setIdent = function () {
@@ -733,13 +742,32 @@ CGeom.prototype.traceSphere = function (inRay, inter)
 var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
 chit.hitTime = t0;
 chit.hitObject = this;
-vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, chit.t0); 
+vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, t0); 
 vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
 vec4.negate(chit.viewN, inRay.dir);
 vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
 vec4.transformMat4(chit.hitNormal, vec4.fromValues(0,0,1,0), this.normal2world);
 vec4.normalize(chit.hitNormal, chit.hitNormal);
 
+var tot = Math.floor(chit.modelHitPoint[0] / this.xgap) + Math.floor(chit.modelHitPoint[1] / this.ygap) + Math.floor(chit.modelHitPoint[2] / this.zgap);
+
+if (tot < 0)
+{
+	tot = -tot;
+}
+
+if (tot%2)
+{
+	chit.surface = 0;         // No.
+	inter.unshift(chit); 
+	return 0;
+}
+else
+{
+	chit.surface = 1;         // No.
+	inter.unshift(chit); 
+	return 1;
+}
 chit.surface = 1;         // No.
   inter.unshift(chit); 
   return 1;
@@ -1002,7 +1030,7 @@ function CScene(scene) {
 	this.item.push(new CGeom(JT_GNDPLANE));
 	this.item.push(new CGeom(JT_SPHERE));
 	//this.item[3].rayTranslate(0, 3, 3);
-	this.item[2].gapColor = vec4.fromValues(.2, .05, .6);
+	this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
 	this.item[2].rayTranslate(0, 3, 3);
 	this.materials = [];
 	this.lights = [];
