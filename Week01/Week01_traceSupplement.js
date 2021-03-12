@@ -609,7 +609,141 @@ CGeom.prototype.traceDisk = function (inRay, inter) {
   }
   chit.surface = 1;         // No.
   inter.unshift(chit); 
-  return;
+  return 1;
+}
+
+CGeom.prototype.traceSphere = function (inRay, inter) 
+{
+	// Half-Chord Method===================
+	//(see Ray-Tracing Lecture Notes D)
+	//for finding ray/sphere intersection
+	//=====================================
+	//------------------ Step 1: transform 'inRay' by this.worldRay2model matrix;
+	var rayT = new CRay();    // to create 'rayT', our local model-space ray.
+	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
+	vec4.copy(rayT.dir, inRay.dir);
+							  // (DON'T do this: rayT = inRay; // that sets rayT
+							  // as a REFERENCE to inRay. Any change to rayT is
+							  // also a change to inRay (!!).
+	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
+	vec4.transformMat4(rayT.dir,  inRay.dir,  this.world2model);
+
+	//------------------ Step 2: Test 1st triangle. Did ray MISS sphere entirely?
+  	// Create r2s vector that reaches FROM ray's start-point TO the sphere center.
+  	//  (subtract: model-space origin POINT - rayT origin POINT):
+  	// (remember, in homogeneous coords w=1 for points, =0 for vectors)
+  	var r2s = vec4.create();
+  	vec4.subtract(r2s, vec4.fromValues(0,0,0,1), rayT.orig);
+  	// Find L2, the squared length of r2s, by dot-product with itself:
+  	var L2 = vec3.dot(r2s,r2s);   // NOTE: vec3.dot() IGNORES the 'w' values when 
+  	                              //  vec4 arguments.  !Good! I like glMatrix...
+  	// if L2 <=1.0, ray starts AT or INSIDE the unit sphere surface (!). 
+  	if(L2 <= 1.0) { // report error and quit.  LATER we can use this case to
+  	                // handle rays through transparent spheres.
+  	  console.log("CGeom.traceSphere() ERROR! rayT origin at or inside sphere!\n\n");
+  	  return;       // HINT: see comments at end of this function.
+  	}
+	
+	  // We now know L2 > 1.0; ray starts OUTSIDE the sphere.
+  // Now consider the path of rayT in model coords. It will either:
+  //  MISS the sphere entirely, or HIT the sphere at 2 points. Lets name the
+  // the line-segment of the ray between those 2 points as the 'chord', and note
+  // that the chord's mid-point is special; it is the point along the ray that 
+  // is closest to the sphere's center.
+  // At this chord midpoint, we define the rayT length as == tca.  
+  // Before we find tca, let's find a SCALED VERSION of tca, called 'tcaS'.
+  //      If we KNOW that rayT.dir is unit-length, then we could find tca by 
+  // taking the dot-product of rayT.dir & r2S, but we DON'T know -- so let's
+  // define the as-yet-unknown length of rayT.dir as 'length(tdir)'.  What we
+  // *DO* know is that tcaS == tca*length(tdir).  Let's find tcaS first:
+  var tcaS = vec3.dot(rayT.dir, r2s); // tcaS == SCALED tca;
+  
+  if(tcaS < 0.0) {      // Is the chord mid-point BEHIND the camera(where t<0)?
+    return -1;             // YES!  rayT didn't start inside the sphere, so if
+    // MISSED!          // the chord mid-point is behind the camera, then
+  }                     // the entire chord is behind the camera: NO hit-points!
+                        // Don't change myHit, don't do any further calcs. Bye!
+                        // Don't change myHit hMISS! sphere is BEHIND the ray! 
+						// No hit points. Bye!
+// STEP 3: Measure 1st triangle-----------------------------------------------
+  // For the next step we need tca^2, without the scale factor imposed by any
+  // non-unit-length tdir.  (tca*length(tdir))^2 = tca^2 * length(tdir)^2,
+  // so we can find tca^2 without the (costly) square-root:
+  var DL2 = vec3.dot(rayT.dir, rayT.dir);
+  var tca2 = tcaS*tcaS / DL2;
+
+  // Next, use the Pythagorean theorem to find LM2; the squared distance from
+  // sphere center to chord mid-point:  L2 = LM2 + tca2, so LM2 = L2-tca2;
+  var LM2 = L2 - tca2;  
+  if(LM2 > 1.0) {   // if LM2 > radius^2, then chord mid-point is OUTSIDE the
+                    // sphere entirely.  Once again, our ray MISSED the sphere.
+    return -1;         // DON'T change myHit, don't do any further calcs. Bye!
+    // MISSED!
+  }
+	//     ***IF*** you're tracing a shadow ray you can stop right here: we know
+  // that this ray's path to the light-source is blocked by this CGeom object.
+
+  // STEP 4: Measure 2nd triangle-----------------------------------------------
+  // Still here? then LM2 must be <= 1.0; the ray hits the sphere at 2 points 
+  // in front of us.  Let's find those hit-points by again using the Pythagorean 
+  // theorem on a 2nd triangle contained entirely within the sphere.
+  //    Form a right-triangle within the sphere--the 90-degree corner is at the
+  // chord midpoint, and its legs extend to the sphere center and to one of
+  // the ray's 2 hit-points. The triangle's hypotenuse is just the sphere's
+  // radius (==1). One leg's squared length is LM2 (chord midpoint to sphere 
+  // center) and the other leg is the 'half-chord', with length Lhc. Pythagoras:
+  //  LM2 + Lhc*Lhc = r^2 = 1.0 or Lhc*Lhc = (1.0 - LM2) == L2hc
+  var L2hc = (1.0 - LM2); // SQUARED half-chord length.
+  
+  // STEP 5: Measure RAY using 2nd triangle-------------------------------------
+  // COOL! the **ray-length** at hit-points are = tca +/- sqrt(L2hc)!
+  //  But wait--we want something else:
+  //      --we want the t value for those hit-points, and
+  //      --we must do it WITHOUT normalizing tdir (and that's important)!
+  //        ASIDE: We simply CAN'T normalize tdir; that would change the 
+  //               t-values of the points where the ray hits the sphere in the 
+  //               'model' coord. sys. We need those non-normalized t values 
+  //                because we use them again on the world-space version of our 
+  //                ray (e.g. inRay) to find the world-space hit-point. We
+  //                then use the world-space hit-point to find shadows, shading,
+  //                transparency, texture, and more.
+  // Algebra finds our t values:
+  // Lets find **ray-length** in terms of the desired value t:
+  //    **ray-length** = tca +/- sqrt(L2hc), and
+  //    **ray-length** = t * length(tdir), and DL2 = (length(tdir))^2.
+  //   Solve for t: 
+  //      t = **ray-length** /length(tdir) = **ray-length** /sqrt(DL2)
+  //        = (tca +/- sqrt(L2hc)) / sqrt(DL2)
+  //        = tca/sqrt(DL2) +/- sqrt(L2hc/DL2)
+  //        Recall that tcaS = tca*length(tdir) = tca*sqrt(DL2), so
+  //                  tcaS/DL2 = tca*sqrt(DL2) / (sqrt(DL2)*sqrt(DL2))
+  //                           =          tca / sqrt(DL2)  and thus:
+  //      ====================================
+  //      t0hit = tcaS/DL2 - sqrt(L2hc/DL2)
+  //      t1hit = tcaS/DL2 + sqrt(L2hc/DL2)
+  //      ====================================
+  //  We know both hit-points are in front of ray, thus t0hit >0 and t1hit >0.
+  //  We also know that Math.sqrt() always returns values >=0, and thus
+  // we know the hit-point NEAREST the ray's origin MUST be t0hit. 
+  var t0 = tcaS/DL2 -Math.sqrt(L2hc/DL2);  // closer of the 2 hit-points.
+//  if(t0hit > myHit.t0) {    // is this new hit-point CLOSER than 'myHit'?
+//    return;       // NO.  DON'T change myHit, don't do any further calcs. Bye!
+//  }
+
+var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+chit.hitTime = t0;
+chit.hitObject = this;
+vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, chit.t0); 
+vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+vec4.negate(chit.viewN, inRay.dir);
+vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
+vec4.transformMat4(chit.hitNormal, vec4.fromValues(0,0,1,0), this.normal2world);
+vec4.normalize(chit.hitNormal, chit.hitNormal);
+
+chit.surface = 1;         // No.
+  inter.unshift(chit); 
+  return 1;
+  
 }
 
 function CImgBuf(wide, tall) {
@@ -863,9 +997,13 @@ function CScene(scene) {
 	this.item = [];
 	this.item.push(new CGeom(JT_GNDPLANE));
 	this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
-	this.item.push(new CGeom(JT_DISK));
-	this.item[1].rayTranslate(0, 0, 4);
+	//this.item.push(new CGeom(JT_DISK));
+	//this.item[1].rayTranslate(0, 0, 4);
 	this.item.push(new CGeom(JT_GNDPLANE));
+	this.item.push(new CGeom(JT_SPHERE));
+	//this.item[3].rayTranslate(0, 3, 3);
+	this.item[2].gapColor = vec4.fromValues(.2, .05, .6);
+	this.item[2].rayTranslate(0, 3, 3);
 	this.materials = [];
 	this.lights = [];
 }
@@ -982,9 +1120,13 @@ CScene.prototype.getFirstHit = function (ray, best) {
 		{
 			hit = this.item[i].traceGrid(ray, inter);
 		}
-		else
+		else if (this.item[i].shapeType == 1)
 		{
 			hit = this.item[i].traceDisk(ray, inter);
+		}
+		else if (this.item[i].shapeType == 2)
+		{
+			hit = this.item[i].traceSphere(ray, inter);
 		}
 		if (hit < 0) {
 			continue;
