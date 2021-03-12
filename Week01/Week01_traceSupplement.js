@@ -577,6 +577,8 @@ CGeom.prototype.traceDisk = function (inRay, inter) {
 	}
 
 	var modelHit = vec4.create();
+	//set model coords here
+	vec4.scaleAndAdd(modelHit, rayT.orig, rayT.dir, t0); 
 	if(modelHit[0]*modelHit[0] + modelHit[1]*modelHit[1] > this.diskRad*this.diskRad)  {     // ?Did ray hit within disk radius?
     	return -1;
 	}
@@ -858,16 +860,13 @@ function CScene(scene) {
 	this.item.push(new CGeom(JT_GNDPLANE));
 	this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
 	this.item.push(new CGeom(JT_DISK));
+	this.item[0].rayTranslate(0, 0, 5);
 	this.materials = [];
 	this.lights = [];
 }
 
 CScene.prototype.makeRayTracedImage = function () {
 	//=============================================================================
-	// TEMPORARY!!!! 
-	// THIS FUNCTION SHOULD BE A MEMBER OF YOUR CScene OBJECTS(when you make them),
-	// and NOT a member of CImgBuf OBJECTS!
-	//
 	// Create an image by Ray-tracing.   (called when you press 'T' or 't')
 
 	//	console.log("You called CImgBuf.makeRayTracedImage!")
@@ -974,7 +973,7 @@ CScene.prototype.getFirstHit = function (ray, best) {
 	var inter = [];
 //	best.length = 0; best needs to get emptied at some point; the continue is not happening
 	for (var i = 0; i < this.item.length; i++) {
-		hit = this.item[i].traceGrid(ray, inter);
+		hit = this.item[i].traceDisk(ray, inter);
 		if (hit < 0) {
 			continue;
 			
