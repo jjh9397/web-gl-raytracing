@@ -343,8 +343,10 @@ const JT_CYLINDER = 4;    // A cylinder with user-settable radius at each end
 const JT_TRIANGLE = 5;    // a triangle with 3 vertices.
 const JT_BLOBBIES = 6;    // Implicit surface:Blinn-style Gaussian 'blobbies'.
 
+const GMAT_CHECKERBOARD = 0;
+const GMAT_FLAT = 1;
 
-function CGeom(shapeSelect) {
+function CGeom(shapeSelect, materialSelect) {
 	//=============================================================================
 	// Generic object for a geometric shape.  
 	// Each instance describes just one shape, but you can select from several 
@@ -383,7 +385,9 @@ function CGeom(shapeSelect) {
 	this.skyColor = vec4.fromValues(0.3, 1.0, 1.0, 1.0);  // cyan/bright blue 
 	// (use skyColor when ray does not hit anything, not even the ground-plane)
 	this.diskRad = 1.5;
-	
+	if (materialSelect == undefined) materialSelect = GMAT_CHECKERBOARD;
+	this.material = materialSelect;
+
 	if (shapeSelect == undefined) shapeSelect = JT_GNDPLANE;	// default
 	this.shapeType = shapeSelect;
 	switch (this.shapeType) {
@@ -749,18 +753,27 @@ vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
 vec4.transformMat4(chit.hitNormal, vec4.fromValues(0,0,1,0), this.normal2world);
 vec4.normalize(chit.hitNormal, chit.hitNormal);
 
-var tot = Math.floor(chit.modelHitPoint[0] / this.xgap) + Math.floor(chit.modelHitPoint[1] / this.ygap) + Math.floor(chit.modelHitPoint[2] / this.zgap);
-
-if (tot < 0)
+if (this.material == GMAT_CHECKERBOARD)
 {
-	tot = -tot;
-}
+	var tot = Math.floor(chit.modelHitPoint[0] / this.xgap) + Math.floor(chit.modelHitPoint[1] / this.ygap) + Math.floor(chit.modelHitPoint[2] / this.zgap);
 
-if (tot%2)
-{
-	chit.surface = 0;         // No.
-	inter.unshift(chit); 
-	return 0;
+	if (tot < 0)
+	{
+		tot = -tot;
+	}
+
+	if (tot%2)
+	{
+		chit.surface = 0;         // No.
+		inter.unshift(chit); 
+		return 0;
+	}
+	else
+	{
+		chit.surface = 1;         // No.
+		inter.unshift(chit); 
+		return 1;
+	}
 }
 else
 {
@@ -768,9 +781,6 @@ else
 	inter.unshift(chit); 
 	return 1;
 }
-chit.surface = 1;         // No.
-  inter.unshift(chit); 
-  return 1;
   
 }
 
@@ -1028,10 +1038,13 @@ function CScene(scene) {
 	//this.item.push(new CGeom(JT_DISK));
 	//this.item[1].rayTranslate(0, 0, 4);
 	this.item.push(new CGeom(JT_GNDPLANE));
-	this.item.push(new CGeom(JT_SPHERE));
+	this.item.push(new CGeom(JT_SPHERE, GMAT_CHECKERBOARD));
 	//this.item[3].rayTranslate(0, 3, 3);
 	this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
 	this.item[2].rayTranslate(0, 3, 3);
+	this.item.push(new CGeom(JT_SPHERE, GMAT_FLAT));
+	this.item[3].gapColor = vec4.fromValues(.05, .7, .6);
+	this.item[3].rayTranslate(2, 4, 1);
 	this.materials = [];
 	this.lights = [];
 }
