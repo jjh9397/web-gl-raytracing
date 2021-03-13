@@ -318,12 +318,12 @@ Material.prototype.setMatl = function(nuMatl) {
 var LightsT = function() {
 	//===============================================================================
 	// Constructor function:
-	  var I_pos = new Vector4();	// x,y,z,w:   w==1 for local 3D position,
+	  var I_pos = vec4.create();	// x,y,z,w:   w==1 for local 3D position,
 								  // w==0 for light at infinity in direction (x,y,z)
 	  var isLit = false;						// true/false for ON/OFF
-	  var I_ambi = new Vector3();		// ambient illumination: r,g,b
-	  var I_diff = new Vector3();		// diffuse illumination: r,g,b.
-	  var I_spec = new Vector3();		// specular illumination: r,g,b.
+	  var I_ambi = vec3.create();		// ambient illumination: r,g,b
+	  var I_diff = vec3.create();		// diffuse illumination: r,g,b.
+	  var I_spec = vec3.create();		// specular illumination: r,g,b.
 	  //
 	  var u_pos = false;						// GPU location for 'uniform' that holds I_pos
 	  var u_ambi = false;						// 																			 I_ambi

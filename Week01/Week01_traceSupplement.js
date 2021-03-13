@@ -345,6 +345,7 @@ const JT_BLOBBIES = 6;    // Implicit surface:Blinn-style Gaussian 'blobbies'.
 
 const GMAT_CHECKERBOARD = 0;
 const GMAT_FLAT = 1;
+const GMAT_AYERDI = 2;
 
 function CGeom(shapeSelect, materialSelect) {
 	//=============================================================================
@@ -532,12 +533,12 @@ CGeom.prototype.traceGrid = function (inRay, inter) {
 	var rayT = new CRay();
 	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
   vec4.copy(rayT.dir, inRay.dir);
-  if (g_flag < 1)
-	{
-		console.log(rayT.orig);
-		console.log(inRay.orig);
-		g_flag++;
-	}
+//   if (g_flag < 1)
+// 	{
+// 		console.log(rayT.orig);
+// 		console.log(inRay.orig);
+// 		g_flag++;
+// 	}
 	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
 	vec4.transformMat4(rayT.dir, inRay.dir, this.world2model);
 	
@@ -557,11 +558,11 @@ CGeom.prototype.traceGrid = function (inRay, inter) {
 	//z = zGrid
 
 	if (x % this.xgap < this.lineWidth || y % this.ygap < this.lineWidth) {
-		var chit = new CHit(t0, this, true, 0,vec4.fromValues(x,y,this.zGrid), vec4.fromValues(0.0,0.0,1.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0));
+		var chit = new CHit(t0, this, true, 0,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
 		inter.unshift(chit);
 		return 1;
 	}
-	var chit = new CHit(t0, this, true, 1, vec4.fromValues(x,y,this.zGrid), vec4.fromValues(0.0,0.0,1.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0));
+	var chit = new CHit(t0, this, true, 1,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
 	inter.unshift(chit);
 	return 0;
 
@@ -1033,20 +1034,30 @@ function CScene(scene) {
 	this.eyeRay = new CRay();
 	this.eyeHits = new CHitList();
 	this.item = [];
-	this.item.push(new CGeom(JT_GNDPLANE));
-	this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
+	//this.item.push(new CGeom(JT_GNDPLANE));
+	//this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
 	//this.item.push(new CGeom(JT_DISK));
 	//this.item[1].rayTranslate(0, 0, 4);
 	this.item.push(new CGeom(JT_GNDPLANE));
 	this.item.push(new CGeom(JT_SPHERE, GMAT_CHECKERBOARD));
 	//this.item[3].rayTranslate(0, 3, 3);
-	this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
-	this.item[2].rayTranslate(0, 3, 3);
+	this.item[1].gapColor = vec4.fromValues(.05, .7, .6);
+	this.item[1].rayTranslate(0, 3, 3);
 	this.item.push(new CGeom(JT_SPHERE, GMAT_FLAT));
-	this.item[3].gapColor = vec4.fromValues(.05, .7, .6);
-	this.item[3].rayTranslate(2, 4, 1);
+	this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
+	this.item[2].rayTranslate(2, 4, 1);
+	
 	this.materials = [];
+	this.materials.push(new Material(MATL_JADE));
+	this.materials.push(new Material(MATL_CHROME));
+	
+	var lamp = new LightsT();
 	this.lights = [];
+	this.lights.push(lamp);
+	this.lights[0].I_pos = vec4.fromValues(0, 0, 50, 1);
+	this.lights[0].I_ambi = vec3.fromValues(.1, .1, .1);
+	this.lights[0].I_diff = vec3.fromValues(.8, .8, .8);
+	this.lights[0].I_spec = vec3.fromValues(.8, .8, .8);
 }
 
 CScene.prototype.makeRayTracedImage = function () {
@@ -1141,15 +1152,49 @@ CScene.prototype.shade = function (ray) {
 		return this.item[0].skyColor;
 	}
 
-	for (let i = 0; i < this.item.length; i++) {
+//	for (let i = 0; i < this.item.length; i++) {
+		var lightDirection = vec4.create();
+		vec4.sub(lightDirection, this.lights[0].I_pos, best[0].hitPoint);
+lightDirection[3] = 0.0;
+		vec4.normalize(lightDirection, lightDirection);
+		
+		var shadowRay = new CRay;
+		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, best[0].hitNormal, .005);
+		//shadowRay.orig = best[0].hitPoint;
+		shadowRay.dir = lightDirection;
+		
+		var shadowHit = [];
+		this.getFirstHit(shadowRay, shadowHit);
+
+if (g_flag < 100)
+{
+	console.log(shadowRay.dir);
+	g_flag++;
+}
+		
+		var inShadow;
+		if (shadowHit.length == 0)
+		{
+			inShadow = false;
+		}
+		else
+		{
+			inShadow = true;
+		}
+
 		if (best[0].surface == 0) {
 			vec4.copy(colr, best[0].hitObject.lineColor);
+			//vec4.copy(colr, this.materials[0].K_ambi);
 		}
 		else {
 			vec4.copy(colr, best[0].hitObject.gapColor);
 		}
+		if (inShadow)
+		{
+			vec4.multiply(colr, colr, vec4.fromValues(.2, .2, .2));
+		}
 		return colr;
-	}
+//	}
 
 }
 
@@ -1175,7 +1220,7 @@ CScene.prototype.getFirstHit = function (ray, best) {
 		}
 		if (best.length == 0 ||
 			inter[0].hitTime < best[0].hitTime) {
-			best[0] = inter[0];
+			best[0] = inter[0]; // probably need to change this to do a full copy
 			//console.log(best.length);
 		}
 	}
