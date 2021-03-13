@@ -553,19 +553,49 @@ CGeom.prototype.traceGrid = function (inRay, inter) {
 		return -1;
 	}
 
-	x = Math.abs(rayT.orig[0] + t0 * rayT.dir[0]);// / this.xgap;
-	y = Math.abs(rayT.orig[1] + t0 * rayT.dir[1]);// / this.ygap;
-	//z = zGrid
+//	x = Math.abs(rayT.orig[0] + t0 * rayT.dir[0]);// / this.xgap;
+//	y = Math.abs(rayT.orig[1] + t0 * rayT.dir[1]);// / this.ygap;
+//	//z = zGrid
+//
+//	if (x % this.xgap < this.lineWidth || y % this.ygap < this.lineWidth) {
+//		var chit = new CHit(t0, this, true, 0,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
+//		inter.unshift(chit);
+//		return 1;
+//	}
+//	var chit = new CHit(t0, this, true, 1,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
+//	inter.unshift(chit);
+//	return 0;
+//probably broken shadows because of this jankiness
+var modelHit = vec4.create();
+vec4.scaleAndAdd(modelHit, rayT.orig, rayT.dir, t0); 
 
-	if (x % this.xgap < this.lineWidth || y % this.ygap < this.lineWidth) {
-		var chit = new CHit(t0, this, true, 0,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
-		inter.unshift(chit);
-		return 1;
-	}
-	var chit = new CHit(t0, this, true, 1,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
-	inter.unshift(chit);
-	return 0;
-
+	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+	chit.hitTime = t0;
+	chit.hitObject = this;
+	vec4.copy(chit.modelHitPoint, modelHit);  // record the model-space hit-pt, and
+  vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+  vec4.negate(chit.viewN, inRay.dir);
+  vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
+  vec4.transformMat4(chit.hitNormal, vec4.fromValues(0,0,1,0), this.normal2world);
+  vec4.normalize(chit.hitNormal, chit.hitNormal);
+	
+  var loc = chit.modelHitPoint[0] / this.xgap;     // how many 'xdgaps' from the origin?
+  if(chit.modelHitPoint[0] < 0) loc = -loc;    // keep >0 to form double-width line at yaxis.
+  if(loc%1 < this.lineWidth) {    // hit a line of constant-x?
+    chit.surface =  0;       // yes.
+	inter.unshift(chit); 
+  return 0;
+  }
+  loc = chit.modelHitPoint[1] / this.ygap;         // how many 'ydgaps' from origin?
+  if(chit.modelHitPoint[1] < 0) loc = -loc;    // keep >0 to form double-width line at xaxis.
+  if(loc%1 < this.lineWidth) {   // hit a line of constant-y?
+    chit.surface = 0;       // yes.
+	inter.unshift(chit); 
+  return 0;
+  }
+  chit.surface = 1;         // No.
+  inter.unshift(chit); 
+  return 1;
 }
 
 CGeom.prototype.traceDisk = function (inRay, inter) {
@@ -655,7 +685,7 @@ CGeom.prototype.traceSphere = function (inRay, inter)
   	if(L2 <= 1.0) { // report error and quit.  LATER we can use this case to
   	                // handle rays through transparent spheres.
   	  console.log("CGeom.traceSphere() ERROR! rayT origin at or inside sphere!\n\n");
-  	  return;       // HINT: see comments at end of this function.
+  	  //return;       // HINT: see comments at end of this function.
   	}
 	
 	  // We now know L2 > 1.0; ray starts OUTSIDE the sphere.
@@ -1159,18 +1189,18 @@ lightDirection[3] = 0.0;
 		vec4.normalize(lightDirection, lightDirection);
 		
 		var shadowRay = new CRay;
-		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, best[0].hitNormal, .005);
+		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, best[0].hitNormal, .000001); //epsilon doesnt work here?????????
 		//shadowRay.orig = best[0].hitPoint;
 		shadowRay.dir = lightDirection;
 		
 		var shadowHit = [];
 		this.getFirstHit(shadowRay, shadowHit);
 
-if (g_flag < 100)
-{
-	console.log(shadowRay.dir);
-	g_flag++;
-}
+// if (g_flag < 100)
+// {
+// 	console.log(shadowRay.dir);
+// 	g_flag++;
+// }
 		
 		var inShadow;
 		if (shadowHit.length == 0)
