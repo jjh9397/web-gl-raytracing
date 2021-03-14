@@ -795,20 +795,20 @@ if (this.material == GMAT_CHECKERBOARD)
 
 	if (tot%2)
 	{
-		chit.surface = 0;         // No.
+		chit.surface = 2;         // No.
 		inter.unshift(chit); 
 		return 0;
 	}
 	else
 	{
-		chit.surface = 1;         // No.
+		chit.surface = 3;         // No.
 		inter.unshift(chit); 
 		return 1;
 	}
 }
 else
 {
-	chit.surface = 1;         // No.
+	chit.surface = 3;         // No.
 	inter.unshift(chit); 
 	return 1;
 }
@@ -1078,13 +1078,15 @@ function CScene(scene) {
 	this.item[2].rayTranslate(2, 4, 1);
 	
 	this.materials = [];
-	this.materials.push(new Material(MATL_EMERALD));
-	this.materials.push(new Material(MATL_RUBY));
+	this.materials.push(new Material(MATL_JADE));
+	this.materials.push(new Material(MATL_TURQUOISE));
+	this.materials.push(new Material(MATL_GOLD_SHINY));
+	this.materials.push(new Material(MATL_PEARL));
 	
 	var lamp = new LightsT();
 	this.lights = [];
 	this.lights.push(lamp);
-	this.lights[0].I_pos = vec4.fromValues(0, 10, 10, 1);
+	this.lights[0].I_pos = vec4.fromValues(0, 10, 4, 1);
 	this.lights[0].I_ambi = vec3.fromValues(.1, .1, .1);
 	this.lights[0].I_diff = vec3.fromValues(.9, .9, .9);
 	this.lights[0].I_spec = vec3.fromValues(.8, .8, .8);
@@ -1223,23 +1225,23 @@ lightDirection[3] = 0.0;
 		vec4.normalize(H, H);
 		var nDotH = Math.max(vec4.dot(H, best[0].hitNormal), 0.0);
 		var spec = Math.pow(nDotH, this.materials[best[0].surface].K_shiny);
+		var reflectVec = vec4.create();
 
-		var diffuseOnly = vec4.fromValues(.2, .7, .6, 1.0);
-		vec4.scale(diffuseOnly, diffuseOnly, nDotL);
+		var diffuse = vec4.fromValues(this.materials[best[0].surface].K_diff[0], this.materials[best[0].surface].K_diff[1], this.materials[best[0].surface].K_diff[2], 1.0);
+		vec4.scale(diffuse, diffuse, nDotL);
+		diffuse[3] = 1.0;
 
-		var diffuseOnly2 = vec4.fromValues(.9, .9, .9, 1.0);
-		vec4.scale(diffuseOnly2, diffuseOnly2, nDotL);
-
+		var ambient = vec4.fromValues(this.materials[best[0].surface].K_ambi[0], this.materials[best[0].surface].K_ambi[1], this.materials[best[0].surface].K_ambi[2], 1.0);
 		//vec4.multiply(diffuseOnly, diffuseOnly, nDotL);
 		if (best[0].surface == 0) {
 			//vec4.copy(colr, best[0].hitObject.lineColor);
-			vec4.copy(colr, diffuseOnly);
-			
+			vec4.copy(colr, diffuse);
+			vec4.add(colr, colr, ambient);
 			//vec4.copy(colr, this.materials[0].K_diff);
 		}
 		else {
 			//vec4.copy(colr, best[0].hitObject.gapColor);
-			vec4.copy(colr, diffuseOnly2);
+			vec4.copy(colr, diffuse);
 		}
 		if (inShadow)
 		{
