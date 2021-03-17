@@ -1087,9 +1087,16 @@ function CScene(scene) {
 	this.lights = [];
 	this.lights.push(lamp);
 	this.lights[0].I_pos = vec4.fromValues(0, 10, 4, 1);
-	this.lights[0].I_ambi = vec3.fromValues(.2, .2, .4);
-	this.lights[0].I_diff = vec3.fromValues(1.0, .9, .8);
+	this.lights[0].I_ambi = vec3.fromValues(.2, .2, .2);
+	this.lights[0].I_diff = vec3.fromValues(1.5, .9, .8);
 	this.lights[0].I_spec = vec3.fromValues(1.0, .9, .8);
+
+	var lamp2 = new LightsT
+	this.lights.push(lamp2);
+	this.lights[1].I_pos = vec4.fromValues(10, 10, 4, 1);
+	this.lights[1].I_ambi = vec3.fromValues(.2, .2, .2);
+	this.lights[1].I_diff = vec3.fromValues(.4, .4, .6);
+	this.lights[1].I_spec = vec3.fromValues(.4, .4, .8);
 }
 
 CScene.prototype.makeRayTracedImage = function () {
@@ -1186,24 +1193,18 @@ CScene.prototype.shade = function (ray) {
 
 	for (let i = 0; i < this.lights.length; i++) {
 		var lightDirection = vec4.create();
-		vec4.sub(lightDirection, this.lights[0].I_pos, best[0].hitPoint);
-lightDirection[3] = 0.0;
+		vec4.sub(lightDirection, this.lights[i].I_pos, best[0].hitPoint);
+		lightDirection[3] = 0.0;
 		vec4.normalize(lightDirection, lightDirection);
 		
 		var shadowRay = new CRay;
-		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, best[0].hitNormal, .000001); //epsilon doesnt work here?????????
+		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, best[0].hitNormal, .000001); //epsilon doesnt work here
 		//shadowRay.orig = best[0].hitPoint;
 		shadowRay.dir = lightDirection;
 		
 		var shadowHit = [];
 		this.getFirstHit(shadowRay, shadowHit);
 
-// if (g_flag < 100)
-// {
-// 	console.log(shadowRay.dir);
-// 	g_flag++;
-// }
-		
 		var inShadow;
 		if (shadowHit.length == 0)
 		{
@@ -1270,15 +1271,16 @@ lightDirection[3] = 0.0;
 //		}
 //		else {
 			//vec4.copy(colr, best[0].hitObject.gapColor);
-			vec4.copy(colr, diffuse);
+			//vec4.copy(colr, diffuse);
+			vec4.add(colr, colr, diffuse);
 			vec4.add(colr, colr, ambient);
 			vec4.add(colr, colr, emissive);
 			vec4.add(colr, colr, specular);
 //		}
 		
-		return colr;
+		
 	}
-
+return colr;
 }
 
 CScene.prototype.getFirstHit = function (ray, best) {
