@@ -1139,7 +1139,7 @@ CScene.prototype.makeRayTracedImage = function () {
 
 					this.rayCamera.setEyeRay(this.eyeRay, i + start + (subcol * offset), j + start + (subrow * offset)); //.25, .75
 					//colr = this.shade(this.eyeRay);
-					vec4.add(colr, colr, this.shade(this.eyeRay));
+					vec4.add(colr, colr, this.shade(this.eyeRay, g_reflections));
 					if (i == 0 && j == 0) console.log('eyeRay:', this.eyeRay); // print first ray
 					if (i == 0 && j == 0) console.log('col number', i + start + (subcol * offset));
 					//		var best = [];
@@ -1191,8 +1191,8 @@ CScene.prototype.makeRayTracedImage = function () {
 	this.imageBuffer.float2int();		// create integer image from floating-point buffer.
 }
 
-CScene.prototype.shade = function (ray) {
-	var colr = vec4.create();
+CScene.prototype.shade = function (ray, reflections) {
+	var color = vec4.create();
 	var best = [];
 	this.getFirstHit(ray, best);
 
@@ -1281,15 +1281,28 @@ CScene.prototype.shade = function (ray) {
 //		else {
 			//vec4.copy(colr, best[0].hitObject.gapColor);
 			//vec4.copy(colr, diffuse);
-			vec4.add(colr, colr, diffuse);
-			vec4.add(colr, colr, ambient);
-			vec4.add(colr, colr, emissive);
-			vec4.add(colr, colr, specular);
+			vec4.add(color, color, diffuse);
+			vec4.add(color, color, ambient);
+			vec4.add(color, color, emissive);
+			vec4.add(color, color, specular);
 //		}
 		
 		
 	}
-return colr;
+
+		if (reflections == 0)
+		{
+			return color;
+		}
+		else
+		{
+			var reflectRay = new CRay;
+			reflectRay.orig = vec4.scaleAndAdd(reflectRay.orig, best[0].hitPoint, best[0].hitNormal, .000001); //epsilon doesnt work here
+			reflectRay.dir = reflectVec;
+			reflections--;
+			return vec4.scaleAndAdd(color, color, this.shade(reflectRay, reflections), .25);
+		}
+	
 }
 
 CScene.prototype.getFirstHit = function (ray, best) {

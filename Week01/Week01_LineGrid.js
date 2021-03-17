@@ -69,6 +69,7 @@ var g_AAcode = 1;			// Antialiasing setting: 1 == NO antialiasing at all.
 var G_AA_MAX = 4;				// highest super-sampling number allowed. 
 var g_isJitter = 0;     // ==1 for jitter, ==0 for no jitter.
 
+var g_reflections = 1;
 //-----For animation & timing:---------------------
 var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our 
                                 // most-recently-drawn WebGL screen contents.  
