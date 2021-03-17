@@ -1087,9 +1087,9 @@ function CScene(scene) {
 	this.lights = [];
 	this.lights.push(lamp);
 	this.lights[0].I_pos = vec4.fromValues(0, 10, 4, 1);
-	this.lights[0].I_ambi = vec3.fromValues(.1, .1, .1);
-	this.lights[0].I_diff = vec3.fromValues(.9, .9, .9);
-	this.lights[0].I_spec = vec3.fromValues(.8, .8, .8);
+	this.lights[0].I_ambi = vec3.fromValues(.2, .2, .4);
+	this.lights[0].I_diff = vec3.fromValues(1.0, .9, .8);
+	this.lights[0].I_spec = vec3.fromValues(1.0, .9, .8);
 }
 
 CScene.prototype.makeRayTracedImage = function () {
@@ -1242,12 +1242,16 @@ lightDirection[3] = 0.0;
  		var emissive = vec4.fromValues(this.materials[best[0].surface].K_emit[0], this.materials[best[0].surface].K_emit[1], this.materials[best[0].surface].K_emit[2], 1.0);
 		var diffuse = vec4.fromValues(this.materials[best[0].surface].K_diff[0], this.materials[best[0].surface].K_diff[1], this.materials[best[0].surface].K_diff[2], 1.0);
 		vec4.scale(diffuse, diffuse, nDotL);
+		vec4.multiply(diffuse, diffuse, this.lights[i].I_diff);
 		diffuse[3] = 1.0;
 
 		var ambient = vec4.fromValues(this.materials[best[0].surface].K_ambi[0], this.materials[best[0].surface].K_ambi[1], this.materials[best[0].surface].K_ambi[2], 1.0);
+		vec4.multiply(ambient, ambient, this.lights[i].I_ambi);
+		ambient[3] = 1.0;
 
 		var specular = vec4.fromValues(this.materials[best[0].surface].K_spec[0], this.materials[best[0].surface].K_spec[1], this.materials[best[0].surface].K_spec[2], 1.0);
 		vec4.scale(specular, specular, pow_nDotH);
+		vec4.multiply(specular, specular, this.lights[i].I_spec);
 		specular[3] = 1.0;
 		
 		if (inShadow)
