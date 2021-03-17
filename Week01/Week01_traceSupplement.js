@@ -1184,7 +1184,7 @@ CScene.prototype.shade = function (ray) {
 		return this.item[0].skyColor;
 	}
 
-//	for (let i = 0; i < this.item.length; i++) {
+	for (let i = 0; i < this.lights.length; i++) {
 		var lightDirection = vec4.create();
 		vec4.sub(lightDirection, this.lights[0].I_pos, best[0].hitPoint);
 lightDirection[3] = 0.0;
@@ -1224,31 +1224,56 @@ lightDirection[3] = 0.0;
 		vec4.add(H, lightDirection, eyeDirection);
 		vec4.normalize(H, H);
 		var nDotH = Math.max(vec4.dot(H, best[0].hitNormal), 0.0);
-		var spec = Math.pow(nDotH, this.materials[best[0].surface].K_shiny);
+		var pow_nDotH = Math.pow(nDotH, this.materials[best[0].surface].K_shiny);
+		
 		var reflectVec = vec4.create();
-
+		var c = vec4.create();
+		vec4.scale(c, best[0].hitNormal, vec4.dot(lightDirection, best[0].hitNormal));
+		vec4.scale(reflectVec, c, 2);
+		vec4.sub(reflectVec, reflectVec, lightDirection);
+		
+		var rDotv = Math.max(vec4.dot(reflectVec, eyeDirection), 0.0);
+		var phong_pow = Math.pow(rDotv, this.materials[best[0].surface].K_shiny);
+		/*  if (g_flag < 100)
+ {
+ 	console.log(phong_pow);
+ 	g_flag++;
+ }  */
+ 		var emissive = vec4.fromValues(this.materials[best[0].surface].K_emit[0], this.materials[best[0].surface].K_emit[1], this.materials[best[0].surface].K_emit[2], 1.0);
 		var diffuse = vec4.fromValues(this.materials[best[0].surface].K_diff[0], this.materials[best[0].surface].K_diff[1], this.materials[best[0].surface].K_diff[2], 1.0);
 		vec4.scale(diffuse, diffuse, nDotL);
 		diffuse[3] = 1.0;
 
 		var ambient = vec4.fromValues(this.materials[best[0].surface].K_ambi[0], this.materials[best[0].surface].K_ambi[1], this.materials[best[0].surface].K_ambi[2], 1.0);
-		//vec4.multiply(diffuseOnly, diffuseOnly, nDotL);
-		if (best[0].surface == 0) {
-			//vec4.copy(colr, best[0].hitObject.lineColor);
-			vec4.copy(colr, diffuse);
-			vec4.add(colr, colr, ambient);
-			//vec4.copy(colr, this.materials[0].K_diff);
-		}
-		else {
-			//vec4.copy(colr, best[0].hitObject.gapColor);
-			vec4.copy(colr, diffuse);
-		}
+
+		var specular = vec4.fromValues(this.materials[best[0].surface].K_spec[0], this.materials[best[0].surface].K_spec[1], this.materials[best[0].surface].K_spec[2], 1.0);
+		vec4.scale(specular, specular, pow_nDotH);
+		specular[3] = 1.0;
+		
 		if (inShadow)
 		{
-			vec4.multiply(colr, colr, vec4.fromValues(.2, .2, .2));
+			vec4.scale(diffuse, diffuse, 0);
+			vec4.scale(specular, specular, 0);
 		}
+		//vec4.multiply(diffuseOnly, diffuseOnly, nDotL);
+//		if (best[0].surface == 0) {
+//			//vec4.copy(colr, best[0].hitObject.lineColor);
+//			vec4.copy(colr, diffuse);
+//			vec4.add(colr, colr, ambient);
+//			vec4.add(colr, colr, emissive);
+//			vec4.add(colr, colr, specular);
+//			//vec4.copy(colr, this.materials[0].K_diff);
+//		}
+//		else {
+			//vec4.copy(colr, best[0].hitObject.gapColor);
+			vec4.copy(colr, diffuse);
+			vec4.add(colr, colr, ambient);
+			vec4.add(colr, colr, emissive);
+			vec4.add(colr, colr, specular);
+//		}
+		
 		return colr;
-//	}
+	}
 
 }
 
