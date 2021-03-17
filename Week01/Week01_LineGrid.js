@@ -442,14 +442,14 @@ function onBrowserResize() {
 // contains:  <body onload="main()" onresize="onBrowserResize()">
 
 	//Make a square canvas/CVV fill the SMALLER of the width/2 or height:
-	if(innerWidth > 2*innerHeight) {  // fit to brower-window height
-		g_canvasID.width = 2*innerHeight - 20;  // (with 20-pixel margin)
-		g_canvasID.height = innerHeight - 20;   // (with 20-pixel margin_
-	  }
-	else {	// fit canvas to browser-window width
-		g_canvasID.width = innerWidth - 20;       // (with 20-pixel margin)
-		g_canvasID.height = 0.5*innerWidth - 20;  // (with 20-pixel margin)
-	  }	 
+//	if(innerWidth > 2*innerHeight) {  // fit to brower-window height
+//		g_canvasID.width = 2*innerHeight - 20;  // (with 20-pixel margin)
+//		g_canvasID.height = innerHeight - 20;   // (with 20-pixel margin_
+//	  }
+//	else {	// fit canvas to browser-window width
+		g_canvasID.width = .9*innerWidth - 20;       // (with 20-pixel margin)
+		g_canvasID.height = 0.45*innerWidth - 20;  // (with 20-pixel margin)
+//	  }	 
  console.log('NEW g_canvas width,height=' +  
   						g_canvasID.width + ', ' + g_canvasID .height);		
  drawAll();     // re-draw browser contents using the new size.

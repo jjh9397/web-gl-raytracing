@@ -343,9 +343,12 @@ const JT_CYLINDER = 4;    // A cylinder with user-settable radius at each end
 const JT_TRIANGLE = 5;    // a triangle with 3 vertices.
 const JT_BLOBBIES = 6;    // Implicit surface:Blinn-style Gaussian 'blobbies'.
 
-const GMAT_CHECKERBOARD = 0;
-const GMAT_FLAT = 1;
-const GMAT_AYERDI = 2;
+const GMAT_CHECKERBOARD = -1;
+const GMAT_JADE = 0;
+const GMAT_TURQUOISE = 1;
+const GMAT_GOLD = 2;
+const GMAT_PEARL = 3;
+const GMAT_SILVER = 4;
 
 function CGeom(shapeSelect, materialSelect) {
 	//=============================================================================
@@ -808,10 +811,11 @@ if (this.material == GMAT_CHECKERBOARD)
 }
 else
 {
-	chit.surface = 3;         // No.
+	chit.surface = this.material;         // No.
 	inter.unshift(chit); 
 	return 1;
 }
+
   
 }
 
@@ -1072,16 +1076,21 @@ function CScene(scene) {
 	this.item.push(new CGeom(JT_SPHERE, GMAT_CHECKERBOARD));
 	//this.item[3].rayTranslate(0, 3, 3);
 	this.item[1].gapColor = vec4.fromValues(.05, .7, .6);
-	this.item[1].rayTranslate(0, 3, 3);
-	this.item.push(new CGeom(JT_SPHERE, GMAT_FLAT));
+	this.item[1].rayTranslate(0, 3, 1);
+	this.item[1].rayScale(1, 1, .7);
+	this.item.push(new CGeom(JT_SPHERE, GMAT_JADE));
 	this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
 	this.item[2].rayTranslate(2, 4, 1);
+	
+	this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
+	this.item[3].rayTranslate(-2, 0, 1);
 	
 	this.materials = [];
 	this.materials.push(new Material(MATL_JADE));
 	this.materials.push(new Material(MATL_TURQUOISE));
 	this.materials.push(new Material(MATL_GOLD_SHINY));
 	this.materials.push(new Material(MATL_PEARL));
+	this.materials.push(new Material(MATL_SILVER_SHINY));
 	
 	var lamp = new LightsT();
 	this.lights = [];
@@ -1247,7 +1256,7 @@ CScene.prototype.shade = function (ray) {
 		diffuse[3] = 1.0;
 
 		var ambient = vec4.fromValues(this.materials[best[0].surface].K_ambi[0], this.materials[best[0].surface].K_ambi[1], this.materials[best[0].surface].K_ambi[2], 1.0);
-		vec4.multiply(ambient, ambient, this.lights[i].I_ambi);
+		vec4.multiply(ambient, ambient, this.lights[0].I_ambi);
 		ambient[3] = 1.0;
 
 		var specular = vec4.fromValues(this.materials[best[0].surface].K_spec[0], this.materials[best[0].surface].K_spec[1], this.materials[best[0].surface].K_spec[2], 1.0);

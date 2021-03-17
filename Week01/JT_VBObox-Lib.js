@@ -741,7 +741,8 @@ VBObox0.prototype.draw = function() {
   //  this.beginGrid, 								// location of 1st vertex to draw;
   //  this.beginSphere);		// number of vertices to draw on-screen.
 
-  mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 3.0, 3.0));
+  mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 3.0, 1.0));
+  mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(1.0, 1.0, .7));
   // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
   gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
   										false, 				// use matrix transpose instead?
@@ -764,6 +765,18 @@ VBObox0.prototype.draw = function() {
       //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
       this.beginSphere, 								// location of 1st vertex to draw;
       this.vboVerts - this.beginSphere);		// number of vertices to draw on-screen.
+
+      mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(-2.0, 0.0, 1.0));
+      // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+      gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                          false, 				// use matrix transpose instead?
+                          this.mvpMat);	// send data from Javascript.
+      mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+      gl.drawArrays(gl.LINES, 	    // select the drawing primitive to draw,
+        // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+        //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+        this.beginSphere, 								// location of 1st vertex to draw;
+        this.vboVerts - this.beginSphere);		// number of vertices to draw on-screen.
 }
 
 VBObox0.prototype.reload = function() {
