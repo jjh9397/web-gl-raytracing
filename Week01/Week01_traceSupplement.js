@@ -1076,7 +1076,7 @@ function CScene(scene) {
 	this.item.push(new CGeom(JT_SPHERE, GMAT_CHECKERBOARD));
 	//this.item[3].rayTranslate(0, 3, 3);
 	this.item[1].gapColor = vec4.fromValues(.05, .7, .6);
-	this.item[1].rayTranslate(0, 3, 1);
+	this.item[1].rayTranslate(0, 3, .7);
 	this.item[1].rayScale(1, 1, .7);
 	this.item.push(new CGeom(JT_SPHERE, GMAT_JADE));
 	this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
@@ -1095,14 +1095,14 @@ function CScene(scene) {
 	var lamp = new LightsT();
 	this.lights = [];
 	this.lights.push(lamp);
-	this.lights[0].I_pos = vec4.fromValues(0, 10, 4, 1);
+	this.lights[0].I_pos = vec4.fromValues(-3, 10, 4, 1);
 	this.lights[0].I_ambi = vec3.fromValues(.2, .2, .2);
 	this.lights[0].I_diff = vec3.fromValues(1.5, .9, .8);
 	this.lights[0].I_spec = vec3.fromValues(1.0, .9, .8);
 
 	var lamp2 = new LightsT
 	this.lights.push(lamp2);
-	this.lights[1].I_pos = vec4.fromValues(0, -10, 4, 1);
+	this.lights[1].I_pos = vec4.fromValues(5, 10, 4, 1);
 	this.lights[1].I_ambi = vec3.fromValues(.2, .2, .2);
 	this.lights[1].I_diff = vec3.fromValues(.4, .4, .6);
 	this.lights[1].I_spec = vec3.fromValues(.4, .4, .8);
@@ -1277,7 +1277,10 @@ CScene.prototype.shade = function (ray, reflections) {
 
 	
 
-		if (reflections == 0)
+		
+	}
+
+	if (reflections == 0)
 		{
 			return color;
 		}
@@ -1285,12 +1288,20 @@ CScene.prototype.shade = function (ray, reflections) {
 		{
 			var reflectRay = new CRay;
 			reflectRay.orig = vec4.scaleAndAdd(reflectRay.orig, best[0].hitPoint, best[0].hitNormal, this.RAY_EPSILON); 
-			reflectRay.dir = reflectVec;
+			
+			var viewReflectVec = vec4.create();
+			var viewC = vec4.create();
+			vec4.scale(viewC, best[0].hitNormal, vec4.dot(eyeDirection, best[0].hitNormal));
+			vec4.scale(viewReflectVec, viewC, 2);
+			vec4.sub(viewReflectVec, viewReflectVec, eyeDirection);
+
+			reflectRay.dir = viewReflectVec;
+			//reflectRay.dir = reflectVec;
 			reflections--;
 			return vec4.scaleAndAdd(color, color, this.shade(reflectRay, reflections), .25);
+			//calculate reflect direction using view vec instead of light dir
 			// only the last light causes reflections??? regions in shadow created by last light do not show reflections
 		}
-	}
 }
 
 CScene.prototype.getFirstHit = function (ray, best) {

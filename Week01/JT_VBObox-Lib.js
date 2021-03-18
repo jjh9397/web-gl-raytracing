@@ -741,7 +741,7 @@ VBObox0.prototype.draw = function() {
   //  this.beginGrid, 								// location of 1st vertex to draw;
   //  this.beginSphere);		// number of vertices to draw on-screen.
 
-  mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 3.0, 1.0));
+  mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 3.0, .7));
   mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(1.0, 1.0, .7));
   // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
   gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
