@@ -386,7 +386,7 @@ function CGeom(shapeSelect, materialSelect) {
 	this.lineWidth = 0.1;	// fraction of xgap used for grid-line width
 	this.lineColor = vec4.fromValues(0.8, 0.1, 0.4, 1.0);  // RGBA green(A==opacity)
 	this.gapColor = vec4.fromValues(0.9, 0.9, 0.9, 1.0);  // near-white
-	this.skyColor = vec4.fromValues(0.3, 1.0, 1.0, 1.0);  // cyan/bright blue 
+	this.skyColor = vec4.fromValues(0.3, 0.7, 0.8, 1.0);  // cyan/bright blue 
 	// (use skyColor when ray does not hit anything, not even the ground-plane)
 	this.diskRad = 1.5;
 	if (materialSelect == undefined) materialSelect = GMAT_CHECKERBOARD;
@@ -1102,7 +1102,7 @@ function CScene(scene) {
 
 	var lamp2 = new LightsT
 	this.lights.push(lamp2);
-	this.lights[1].I_pos = vec4.fromValues(10, 10, 4, 1);
+	this.lights[1].I_pos = vec4.fromValues(0, -10, 4, 1);
 	this.lights[1].I_ambi = vec3.fromValues(.2, .2, .2);
 	this.lights[1].I_diff = vec3.fromValues(.4, .4, .6);
 	this.lights[1].I_spec = vec3.fromValues(.4, .4, .8);
@@ -1269,26 +1269,13 @@ CScene.prototype.shade = function (ray, reflections) {
 			vec4.scale(diffuse, diffuse, 0);
 			vec4.scale(specular, specular, 0);
 		}
-		//vec4.multiply(diffuseOnly, diffuseOnly, nDotL);
-//		if (best[0].surface == 0) {
-//			//vec4.copy(colr, best[0].hitObject.lineColor);
-//			vec4.copy(colr, diffuse);
-//			vec4.add(colr, colr, ambient);
-//			vec4.add(colr, colr, emissive);
-//			vec4.add(colr, colr, specular);
-//			//vec4.copy(colr, this.materials[0].K_diff);
-//		}
-//		else {
-			//vec4.copy(colr, best[0].hitObject.gapColor);
-			//vec4.copy(colr, diffuse);
+
 			vec4.add(color, color, diffuse);
 			vec4.add(color, color, ambient);
 			vec4.add(color, color, emissive);
 			vec4.add(color, color, specular);
-//		}
-		
-		
-	}
+
+	
 
 		if (reflections == 0)
 		{
@@ -1297,12 +1284,13 @@ CScene.prototype.shade = function (ray, reflections) {
 		else
 		{
 			var reflectRay = new CRay;
-			reflectRay.orig = vec4.scaleAndAdd(reflectRay.orig, best[0].hitPoint, best[0].hitNormal, .000001); //epsilon doesnt work here
+			reflectRay.orig = vec4.scaleAndAdd(reflectRay.orig, best[0].hitPoint, best[0].hitNormal, this.RAY_EPSILON); 
 			reflectRay.dir = reflectVec;
 			reflections--;
 			return vec4.scaleAndAdd(color, color, this.shade(reflectRay, reflections), .25);
+			// only the last light causes reflections??? regions in shadow created by last light do not show reflections
 		}
-	
+	}
 }
 
 CScene.prototype.getFirstHit = function (ray, best) {
