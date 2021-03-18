@@ -220,8 +220,8 @@ function CCamera() {
 	this.iTop = 1.0;
 
 	// And the lower-left-most corner of the image is at (u,v,n) = (iLeft,iBot,-iNear).
-	this.xmax = 256;			// horizontal,
-	this.ymax = 256;			// vertical image resolution.
+	this.xmax = 512;			// horizontal,
+	this.ymax = 512;			// vertical image resolution.
 	// To ray-trace an image of xmax,ymax pixels, divide this rectangular image 
 	// plane into xmax,ymax rectangular tiles, and shoot eye-rays from the camera's
 	// center-of-projection through those tiles to find scene color values.  
@@ -781,10 +781,14 @@ var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromVa
 chit.hitTime = t0;
 chit.hitObject = this;
 vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, t0); 
+chit.modelHitPoint[3] = 1;
 vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+chit.hitPoint[3] = 1;
 vec4.negate(chit.viewN, inRay.dir);
+chit.viewN[3] = 0;
 vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
 vec4.transformMat4(chit.hitNormal, vec4.fromValues(chit.modelHitPoint[0],chit.modelHitPoint[1],chit.modelHitPoint[2],0), this.normal2world);
+chit.hitNormal[3] = 0;
 vec4.normalize(chit.hitNormal, chit.hitNormal);
 
 if (this.material == GMAT_CHECKERBOARD)
@@ -1073,6 +1077,9 @@ function CScene(scene) {
 	//this.item.push(new CGeom(JT_DISK));
 	//this.item[1].rayTranslate(0, 0, 4);
 	this.item.push(new CGeom(JT_GNDPLANE));
+	//this.item.push(new CGeom(JT_SPHERE, GMAT_PEARL));
+	//this.item[0].rayTranslate(0, 0, 1.2);
+
 	this.item.push(new CGeom(JT_SPHERE, GMAT_CHECKERBOARD));
 	//this.item[3].rayTranslate(0, 3, 3);
 	this.item[1].gapColor = vec4.fromValues(.05, .7, .6);
@@ -1207,7 +1214,7 @@ CScene.prototype.shade = function (ray, reflections) {
 		vec4.normalize(lightDirection, lightDirection);
 		
 		var shadowRay = new CRay;
-		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, best[0].hitNormal, .000001); //epsilon doesnt work here
+		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, ray.dir, -10000000000*this.RAY_EPSILON); //epsilon doesnt work here
 		//shadowRay.orig = best[0].hitPoint;
 		shadowRay.dir = lightDirection;
 		
@@ -1224,8 +1231,12 @@ CScene.prototype.shade = function (ray, reflections) {
 			inShadow = true;
 		}
 
-		var eyeDirection = best[0].viewN;
-		//vec4.inverse(eyeDirection, ray.dir); // ?????????????????????
+		//var eyeDirection = best[0].viewN;
+		var eyeDirection = vec4.create();
+		//console.log("viewN: " + best[0].viewN + "	ray.dir: " + ray.dir);
+		//vec4.negate(eyeDirection, eyeDirection);
+		vec4.negate(eyeDirection, ray.dir); 
+		vec4.normalize(eyeDirection, eyeDirection);
 		
 		//vec4.normalize(eyeDirection, eyeDirection);
 		var nDotL = Math.max(vec4.dot(lightDirection, best[0].hitNormal), 0.0);
@@ -1287,20 +1298,27 @@ CScene.prototype.shade = function (ray, reflections) {
 		else
 		{
 			var reflectRay = new CRay;
-			reflectRay.orig = vec4.scaleAndAdd(reflectRay.orig, best[0].hitPoint, best[0].hitNormal, this.RAY_EPSILON); 
+			reflectRay.orig = vec4.create();
+			reflectRay.orig = vec4.scaleAndAdd(reflectRay.orig, best[0].hitPoint, ray.dir, -10000000000*this.RAY_EPSILON); 
+			reflectRay.orig[3] = 1.0;
 			
 			var viewReflectVec = vec4.create();
 			var viewC = vec4.create();
+
+			//console.log(best[0].hitNormal);
 			vec4.scale(viewC, best[0].hitNormal, vec4.dot(eyeDirection, best[0].hitNormal));
 			vec4.scale(viewReflectVec, viewC, 2);
 			vec4.sub(viewReflectVec, viewReflectVec, eyeDirection);
+			viewReflectVec[3] = 0;
+			vec4.normalize(viewReflectVec, viewReflectVec)
 
 			reflectRay.dir = viewReflectVec;
 			//reflectRay.dir = reflectVec;
 			reflections--;
-			return vec4.scaleAndAdd(color, color, this.shade(reflectRay, reflections), .25);
+			return vec4.scaleAndAdd(color, color, this.shade(reflectRay, reflections), this.materials[best[0].surface].K_shiny * .01);
 			//calculate reflect direction using view vec instead of light dir
-			// only the last light causes reflections??? regions in shadow created by last light do not show reflections
+			// seeing some artifacts and unexpected reflections. check that ground plane is returning correct values to work off
+			// ground plane turned off reveals that can see through objects. reflect rays are somehow going through the object? maybe best[] isnt getting cleared correctly
 		}
 }
 

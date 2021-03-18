@@ -53,7 +53,7 @@ preView = new VBObox0();		// For WebGLpreview: holds one VBO and its shaders
 rayView = new VBObox1();		// for displaying the ray-tracing results.
 
 //-----------Ray Tracer Objects:---------------
-var g_myPic = new CImgBuf(256,256); // Create a floating-point image-buffer 
+var g_myPic = new CImgBuf(512,512); // Create a floating-point image-buffer 
                         // object to hold the image created by 'g_myScene' object.
 
 var g_myScene = new CScene(g_myPic); // Create our ray-tracing object; 
