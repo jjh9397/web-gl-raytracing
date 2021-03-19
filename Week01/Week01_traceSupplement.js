@@ -258,7 +258,7 @@ CCamera.prototype.rayPerspective = function (fovy, aspect, zNear) {
 
 CCamera.prototype.rayLookAt = function (neyePt, naimPt, nupVec) {
 	this.eyePt = neyePt;
-	
+
 	vec4.sub(this.nAxis, this.eyePt, naimPt);
 	vec4.normalize(this.nAxis, this.nAxis);
 
@@ -333,13 +333,13 @@ CCamera.prototype.printMe = function () {
 //=============================================================================
 // Allowable values for CGeom.shapeType variable.  Add some of your own!
 const JT_GNDPLANE = 0;    // An endless 'ground plane' surface.
-const JT_DISK     = 1;
-const JT_SPHERE   = 2;    // A sphere.
-const JT_OCTAHEDRON      = 3;    // An axis-aligned cube.
+const JT_DISK = 1;
+const JT_SPHERE = 2;    // A sphere.
+const JT_OCTAHEDRON = 3;    // An axis-aligned cube.
 const JT_CYLINDER = 4;    // A cylinder with user-settable radius at each end
-                        // and user-settable length.  radius of 0 at either
-                        // end makes a cone; length of 0 with nonzero
-                        // radius at each end makes a disk.
+// and user-settable length.  radius of 0 at either
+// end makes a cone; length of 0 with nonzero
+// radius at each end makes a disk.
 const JT_BOX = 5;    // a triangle with 3 vertices.
 const JT_BLOBBIES = 6;    // Implicit surface:Blinn-style Gaussian 'blobbies'.
 
@@ -401,11 +401,11 @@ function CGeom(shapeSelect, materialSelect) {
 			this.traceMe = function (inRay, inter) { this.traceDisk(inRay, inter); }; break;
 		case JT_SPHERE:
 			{
-			this.traceMe = function (inR, hit) { this.traceSphere(inR, hit); }; 
-			this.xgap = .25;	// line-to-line spacing
-			this.ygap = .25;
-			this.zgap = .25;
-			break;
+				this.traceMe = function (inR, hit) { this.traceSphere(inR, hit); };
+				this.xgap = .25;	// line-to-line spacing
+				this.ygap = .25;
+				this.zgap = .25;
+				break;
 			}
 		case JT_OCTAHEDRON:
 			this.traceMe = function (inR, hit) { this.traceOctahedron(inR, hit); }; break;
@@ -535,19 +535,19 @@ CGeom.prototype.traceGrid = function (inRay, inter) {
 	//        otherwise, the ray hit BETWEEN the lines; use 'gapColor'
 	var rayT = new CRay();
 	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
-  vec4.copy(rayT.dir, inRay.dir);
-//   if (g_flag < 1)
-// 	{
-// 		console.log(rayT.orig);
-// 		console.log(inRay.orig);
-// 		g_flag++;
-// 	}
+	vec4.copy(rayT.dir, inRay.dir);
+	//   if (g_flag < 1)
+	// 	{
+	// 		console.log(rayT.orig);
+	// 		console.log(inRay.orig);
+	// 		g_flag++;
+	// 	}
 	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
 	vec4.transformMat4(rayT.dir, inRay.dir, this.world2model);
-	
-	
+
+
 	//vec4.copy(rayT.orig, inRay.orig);   // copy (if we're not going to transform)
-  //vec4.copy(rayT.dir, inRay.dir);
+	//vec4.copy(rayT.dir, inRay.dir);
 
 	var t0 = (this.zGrid - rayT.orig[2]) / rayT.dir[2];
 	var x;
@@ -556,49 +556,49 @@ CGeom.prototype.traceGrid = function (inRay, inter) {
 		return -1;
 	}
 
-//	x = Math.abs(rayT.orig[0] + t0 * rayT.dir[0]);// / this.xgap;
-//	y = Math.abs(rayT.orig[1] + t0 * rayT.dir[1]);// / this.ygap;
-//	//z = zGrid
-//
-//	if (x % this.xgap < this.lineWidth || y % this.ygap < this.lineWidth) {
-//		var chit = new CHit(t0, this, true, 0,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
-//		inter.unshift(chit);
-//		return 1;
-//	}
-//	var chit = new CHit(t0, this, true, 1,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
-//	inter.unshift(chit);
-//	return 0;
-//probably broken shadows because of this jankiness
-var modelHit = vec4.create();
-vec4.scaleAndAdd(modelHit, rayT.orig, rayT.dir, t0); 
+	//	x = Math.abs(rayT.orig[0] + t0 * rayT.dir[0]);// / this.xgap;
+	//	y = Math.abs(rayT.orig[1] + t0 * rayT.dir[1]);// / this.ygap;
+	//	//z = zGrid
+	//
+	//	if (x % this.xgap < this.lineWidth || y % this.ygap < this.lineWidth) {
+	//		var chit = new CHit(t0, this, true, 0,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
+	//		inter.unshift(chit);
+	//		return 1;
+	//	}
+	//	var chit = new CHit(t0, this, true, 1,vec4.fromValues(x,y,this.zGrid, 1.0), vec4.fromValues(0.0,0.0,1.0, 0.0), vec4.fromValues(0.0,0.0,1.0,0.0), vec4.fromValues(x,y,this.zGrid, 1.0));
+	//	inter.unshift(chit);
+	//	return 0;
+	//probably broken shadows because of this jankiness
+	var modelHit = vec4.create();
+	vec4.scaleAndAdd(modelHit, rayT.orig, rayT.dir, t0);
 
-	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0));
 	chit.hitTime = t0;
 	chit.hitObject = this;
 	vec4.copy(chit.modelHitPoint, modelHit);  // record the model-space hit-pt, and
-  vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
-  vec4.negate(chit.viewN, inRay.dir);
-  vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
-  vec4.transformMat4(chit.hitNormal, vec4.fromValues(0,0,1,0), this.normal2world);
-  vec4.normalize(chit.hitNormal, chit.hitNormal);
-	
-  var loc = chit.modelHitPoint[0] / this.xgap;     // how many 'xdgaps' from the origin?
-  if(chit.modelHitPoint[0] < 0) loc = -loc;    // keep >0 to form double-width line at yaxis.
-  if(loc%1 < this.lineWidth) {    // hit a line of constant-x?
-    chit.surface =  0;       // yes.
-	inter.unshift(chit); 
-  return 0;
-  }
-  loc = chit.modelHitPoint[1] / this.ygap;         // how many 'ydgaps' from origin?
-  if(chit.modelHitPoint[1] < 0) loc = -loc;    // keep >0 to form double-width line at xaxis.
-  if(loc%1 < this.lineWidth) {   // hit a line of constant-y?
-    chit.surface = 0;       // yes.
-	inter.unshift(chit); 
-  return 0;
-  }
-  chit.surface = 1;         // No.
-  inter.unshift(chit); 
-  return 1;
+	vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+	vec4.negate(chit.viewN, inRay.dir);
+	vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
+	vec4.transformMat4(chit.hitNormal, vec4.fromValues(0, 0, 1, 0), this.normal2world);
+	vec4.normalize(chit.hitNormal, chit.hitNormal);
+
+	var loc = chit.modelHitPoint[0] / this.xgap;     // how many 'xdgaps' from the origin?
+	if (chit.modelHitPoint[0] < 0) loc = -loc;    // keep >0 to form double-width line at yaxis.
+	if (loc % 1 < this.lineWidth) {    // hit a line of constant-x?
+		chit.surface = 0;       // yes.
+		inter.unshift(chit);
+		return 0;
+	}
+	loc = chit.modelHitPoint[1] / this.ygap;         // how many 'ydgaps' from origin?
+	if (chit.modelHitPoint[1] < 0) loc = -loc;    // keep >0 to form double-width line at xaxis.
+	if (loc % 1 < this.lineWidth) {   // hit a line of constant-y?
+		chit.surface = 0;       // yes.
+		inter.unshift(chit);
+		return 0;
+	}
+	chit.surface = 1;         // No.
+	inter.unshift(chit);
+	return 1;
 }
 
 CGeom.prototype.traceDisk = function (inRay, inter) {
@@ -616,51 +616,49 @@ CGeom.prototype.traceDisk = function (inRay, inter) {
 	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
 	vec4.transformMat4(rayT.dir, inRay.dir, this.world2model);
 
-	var t0 = -rayT.orig[2]/rayT.dir[2];
+	var t0 = -rayT.orig[2] / rayT.dir[2];
 
-	if (t0 < 0)
-	{
+	if (t0 < 0) {
 		return -1;
 	}
 
 	var modelHit = vec4.create();
 	//set model coords here
-	vec4.scaleAndAdd(modelHit, rayT.orig, rayT.dir, t0); 
-	if(modelHit[0]*modelHit[0] + modelHit[1]*modelHit[1] > this.diskRad*this.diskRad)  {     // ?Did ray hit within disk radius?
-    	return -1;
+	vec4.scaleAndAdd(modelHit, rayT.orig, rayT.dir, t0);
+	if (modelHit[0] * modelHit[0] + modelHit[1] * modelHit[1] > this.diskRad * this.diskRad) {     // ?Did ray hit within disk radius?
+		return -1;
 	}
 
-	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0));
 	chit.hitTime = t0;
 	chit.hitObject = this;
 	vec4.copy(chit.modelHitPoint, modelHit);  // record the model-space hit-pt, and
-  vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
-  vec4.negate(chit.viewN, inRay.dir);
-  vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
-  vec4.transformMat4(chit.hitNormal, vec4.fromValues(0,0,1,0), this.normal2world);
-  vec4.normalize(chit.hitNormal, chit.hitNormal);
-	
-  var loc = chit.modelHitPoint[0] / xdgap;     // how many 'xdgaps' from the origin?
-  if(chit.modelHitPoint[0] < 0) loc = -loc;    // keep >0 to form double-width line at yaxis.
-  if(loc%1 < dwid) {    // hit a line of constant-x?
-    chit.surface =  0;       // yes.
-	inter.unshift(chit); 
-  return 0;
-  }
-  loc = chit.modelHitPoint[1] / ydgap;         // how many 'ydgaps' from origin?
-  if(chit.modelHitPoint[1] < 0) loc = -loc;    // keep >0 to form double-width line at xaxis.
-  if(loc%1 < dwid) {   // hit a line of constant-y?
-    chit.surface = 0;       // yes.
-	inter.unshift(chit); 
-  return 0;
-  }
-  chit.surface = 1;         // No.
-  inter.unshift(chit); 
-  return 1;
+	vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+	vec4.negate(chit.viewN, inRay.dir);
+	vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
+	vec4.transformMat4(chit.hitNormal, vec4.fromValues(0, 0, 1, 0), this.normal2world);
+	vec4.normalize(chit.hitNormal, chit.hitNormal);
+
+	var loc = chit.modelHitPoint[0] / xdgap;     // how many 'xdgaps' from the origin?
+	if (chit.modelHitPoint[0] < 0) loc = -loc;    // keep >0 to form double-width line at yaxis.
+	if (loc % 1 < dwid) {    // hit a line of constant-x?
+		chit.surface = 0;       // yes.
+		inter.unshift(chit);
+		return 0;
+	}
+	loc = chit.modelHitPoint[1] / ydgap;         // how many 'ydgaps' from origin?
+	if (chit.modelHitPoint[1] < 0) loc = -loc;    // keep >0 to form double-width line at xaxis.
+	if (loc % 1 < dwid) {   // hit a line of constant-y?
+		chit.surface = 0;       // yes.
+		inter.unshift(chit);
+		return 0;
+	}
+	chit.surface = 1;         // No.
+	inter.unshift(chit);
+	return 1;
 }
 
-CGeom.prototype.traceSphere = function (inRay, inter) 
-{
+CGeom.prototype.traceSphere = function (inRay, inter) {
 	// Half-Chord Method===================
 	//(see Ray-Tracing Lecture Notes D)
 	//for finding ray/sphere intersection
@@ -669,177 +667,171 @@ CGeom.prototype.traceSphere = function (inRay, inter)
 	var rayT = new CRay();    // to create 'rayT', our local model-space ray.
 	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
 	vec4.copy(rayT.dir, inRay.dir);
-							  // (DON'T do this: rayT = inRay; // that sets rayT
-							  // as a REFERENCE to inRay. Any change to rayT is
-							  // also a change to inRay (!!).
+	// (DON'T do this: rayT = inRay; // that sets rayT
+	// as a REFERENCE to inRay. Any change to rayT is
+	// also a change to inRay (!!).
 	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
-	vec4.transformMat4(rayT.dir,  inRay.dir,  this.world2model);
+	vec4.transformMat4(rayT.dir, inRay.dir, this.world2model);
 
 	//------------------ Step 2: Test 1st triangle. Did ray MISS sphere entirely?
-  	// Create r2s vector that reaches FROM ray's start-point TO the sphere center.
-  	//  (subtract: model-space origin POINT - rayT origin POINT):
-  	// (remember, in homogeneous coords w=1 for points, =0 for vectors)
-  	var r2s = vec4.create();
-  	vec4.subtract(r2s, vec4.fromValues(0,0,0,1), rayT.orig);
-  	// Find L2, the squared length of r2s, by dot-product with itself:
-  	var L2 = vec3.dot(r2s,r2s);   // NOTE: vec3.dot() IGNORES the 'w' values when 
-  	                              //  vec4 arguments.  !Good! I like glMatrix...
-  	// if L2 <=1.0, ray starts AT or INSIDE the unit sphere surface (!). 
-  	if(L2 <= 1.0) { // report error and quit.  LATER we can use this case to
-  	                // handle rays through transparent spheres.
-  	  console.log("CGeom.traceSphere() ERROR! rayT origin at or inside sphere!\n\n");
-  	  //return;       // HINT: see comments at end of this function.
-  	}
-	
-	  // We now know L2 > 1.0; ray starts OUTSIDE the sphere.
-  // Now consider the path of rayT in model coords. It will either:
-  //  MISS the sphere entirely, or HIT the sphere at 2 points. Lets name the
-  // the line-segment of the ray between those 2 points as the 'chord', and note
-  // that the chord's mid-point is special; it is the point along the ray that 
-  // is closest to the sphere's center.
-  // At this chord midpoint, we define the rayT length as == tca.  
-  // Before we find tca, let's find a SCALED VERSION of tca, called 'tcaS'.
-  //      If we KNOW that rayT.dir is unit-length, then we could find tca by 
-  // taking the dot-product of rayT.dir & r2S, but we DON'T know -- so let's
-  // define the as-yet-unknown length of rayT.dir as 'length(tdir)'.  What we
-  // *DO* know is that tcaS == tca*length(tdir).  Let's find tcaS first:
-  var tcaS = vec3.dot(rayT.dir, r2s); // tcaS == SCALED tca;
-  
-  if(tcaS < 0.0) {      // Is the chord mid-point BEHIND the camera(where t<0)?
-    return -1;             // YES!  rayT didn't start inside the sphere, so if
-    // MISSED!          // the chord mid-point is behind the camera, then
-  }                     // the entire chord is behind the camera: NO hit-points!
-                        // Don't change myHit, don't do any further calcs. Bye!
-                        // Don't change myHit hMISS! sphere is BEHIND the ray! 
-						// No hit points. Bye!
-// STEP 3: Measure 1st triangle-----------------------------------------------
-  // For the next step we need tca^2, without the scale factor imposed by any
-  // non-unit-length tdir.  (tca*length(tdir))^2 = tca^2 * length(tdir)^2,
-  // so we can find tca^2 without the (costly) square-root:
-  var DL2 = vec3.dot(rayT.dir, rayT.dir);
-  var tca2 = tcaS*tcaS / DL2;
+	// Create r2s vector that reaches FROM ray's start-point TO the sphere center.
+	//  (subtract: model-space origin POINT - rayT origin POINT):
+	// (remember, in homogeneous coords w=1 for points, =0 for vectors)
+	var r2s = vec4.create();
+	vec4.subtract(r2s, vec4.fromValues(0, 0, 0, 1), rayT.orig);
+	// Find L2, the squared length of r2s, by dot-product with itself:
+	var L2 = vec3.dot(r2s, r2s);   // NOTE: vec3.dot() IGNORES the 'w' values when 
+	//  vec4 arguments.  !Good! I like glMatrix...
+	// if L2 <=1.0, ray starts AT or INSIDE the unit sphere surface (!). 
+	if (L2 <= 1.0) { // report error and quit.  LATER we can use this case to
+		// handle rays through transparent spheres.
+		console.log("CGeom.traceSphere() ERROR! rayT origin at or inside sphere!\n\n");
+		//return;       // HINT: see comments at end of this function.
+	}
 
-  // Next, use the Pythagorean theorem to find LM2; the squared distance from
-  // sphere center to chord mid-point:  L2 = LM2 + tca2, so LM2 = L2-tca2;
-  var LM2 = L2 - tca2;  
-  if(LM2 > 1.0) {   // if LM2 > radius^2, then chord mid-point is OUTSIDE the
-                    // sphere entirely.  Once again, our ray MISSED the sphere.
-    return -1;         // DON'T change myHit, don't do any further calcs. Bye!
-    // MISSED!
-  }
+	// We now know L2 > 1.0; ray starts OUTSIDE the sphere.
+	// Now consider the path of rayT in model coords. It will either:
+	//  MISS the sphere entirely, or HIT the sphere at 2 points. Lets name the
+	// the line-segment of the ray between those 2 points as the 'chord', and note
+	// that the chord's mid-point is special; it is the point along the ray that 
+	// is closest to the sphere's center.
+	// At this chord midpoint, we define the rayT length as == tca.  
+	// Before we find tca, let's find a SCALED VERSION of tca, called 'tcaS'.
+	//      If we KNOW that rayT.dir is unit-length, then we could find tca by 
+	// taking the dot-product of rayT.dir & r2S, but we DON'T know -- so let's
+	// define the as-yet-unknown length of rayT.dir as 'length(tdir)'.  What we
+	// *DO* know is that tcaS == tca*length(tdir).  Let's find tcaS first:
+	var tcaS = vec3.dot(rayT.dir, r2s); // tcaS == SCALED tca;
+
+	if (tcaS < 0.0) {      // Is the chord mid-point BEHIND the camera(where t<0)?
+		return -1;             // YES!  rayT didn't start inside the sphere, so if
+		// MISSED!          // the chord mid-point is behind the camera, then
+	}                     // the entire chord is behind the camera: NO hit-points!
+	// Don't change myHit, don't do any further calcs. Bye!
+	// Don't change myHit hMISS! sphere is BEHIND the ray! 
+	// No hit points. Bye!
+	// STEP 3: Measure 1st triangle-----------------------------------------------
+	// For the next step we need tca^2, without the scale factor imposed by any
+	// non-unit-length tdir.  (tca*length(tdir))^2 = tca^2 * length(tdir)^2,
+	// so we can find tca^2 without the (costly) square-root:
+	var DL2 = vec3.dot(rayT.dir, rayT.dir);
+	var tca2 = tcaS * tcaS / DL2;
+
+	// Next, use the Pythagorean theorem to find LM2; the squared distance from
+	// sphere center to chord mid-point:  L2 = LM2 + tca2, so LM2 = L2-tca2;
+	var LM2 = L2 - tca2;
+	if (LM2 > 1.0) {   // if LM2 > radius^2, then chord mid-point is OUTSIDE the
+		// sphere entirely.  Once again, our ray MISSED the sphere.
+		return -1;         // DON'T change myHit, don't do any further calcs. Bye!
+		// MISSED!
+	}
 	//     ***IF*** you're tracing a shadow ray you can stop right here: we know
-  // that this ray's path to the light-source is blocked by this CGeom object.
+	// that this ray's path to the light-source is blocked by this CGeom object.
 
-  // STEP 4: Measure 2nd triangle-----------------------------------------------
-  // Still here? then LM2 must be <= 1.0; the ray hits the sphere at 2 points 
-  // in front of us.  Let's find those hit-points by again using the Pythagorean 
-  // theorem on a 2nd triangle contained entirely within the sphere.
-  //    Form a right-triangle within the sphere--the 90-degree corner is at the
-  // chord midpoint, and its legs extend to the sphere center and to one of
-  // the ray's 2 hit-points. The triangle's hypotenuse is just the sphere's
-  // radius (==1). One leg's squared length is LM2 (chord midpoint to sphere 
-  // center) and the other leg is the 'half-chord', with length Lhc. Pythagoras:
-  //  LM2 + Lhc*Lhc = r^2 = 1.0 or Lhc*Lhc = (1.0 - LM2) == L2hc
-  var L2hc = (1.0 - LM2); // SQUARED half-chord length.
-  
-  // STEP 5: Measure RAY using 2nd triangle-------------------------------------
-  // COOL! the **ray-length** at hit-points are = tca +/- sqrt(L2hc)!
-  //  But wait--we want something else:
-  //      --we want the t value for those hit-points, and
-  //      --we must do it WITHOUT normalizing tdir (and that's important)!
-  //        ASIDE: We simply CAN'T normalize tdir; that would change the 
-  //               t-values of the points where the ray hits the sphere in the 
-  //               'model' coord. sys. We need those non-normalized t values 
-  //                because we use them again on the world-space version of our 
-  //                ray (e.g. inRay) to find the world-space hit-point. We
-  //                then use the world-space hit-point to find shadows, shading,
-  //                transparency, texture, and more.
-  // Algebra finds our t values:
-  // Lets find **ray-length** in terms of the desired value t:
-  //    **ray-length** = tca +/- sqrt(L2hc), and
-  //    **ray-length** = t * length(tdir), and DL2 = (length(tdir))^2.
-  //   Solve for t: 
-  //      t = **ray-length** /length(tdir) = **ray-length** /sqrt(DL2)
-  //        = (tca +/- sqrt(L2hc)) / sqrt(DL2)
-  //        = tca/sqrt(DL2) +/- sqrt(L2hc/DL2)
-  //        Recall that tcaS = tca*length(tdir) = tca*sqrt(DL2), so
-  //                  tcaS/DL2 = tca*sqrt(DL2) / (sqrt(DL2)*sqrt(DL2))
-  //                           =          tca / sqrt(DL2)  and thus:
-  //      ====================================
-  //      t0hit = tcaS/DL2 - sqrt(L2hc/DL2)
-  //      t1hit = tcaS/DL2 + sqrt(L2hc/DL2)
-  //      ====================================
-  //  We know both hit-points are in front of ray, thus t0hit >0 and t1hit >0.
-  //  We also know that Math.sqrt() always returns values >=0, and thus
-  // we know the hit-point NEAREST the ray's origin MUST be t0hit. 
-  var t0 = tcaS/DL2 -Math.sqrt(L2hc/DL2);  // closer of the 2 hit-points.
-//  if(t0hit > myHit.t0) {    // is this new hit-point CLOSER than 'myHit'?
-//    return;       // NO.  DON'T change myHit, don't do any further calcs. Bye!
-//  }
+	// STEP 4: Measure 2nd triangle-----------------------------------------------
+	// Still here? then LM2 must be <= 1.0; the ray hits the sphere at 2 points 
+	// in front of us.  Let's find those hit-points by again using the Pythagorean 
+	// theorem on a 2nd triangle contained entirely within the sphere.
+	//    Form a right-triangle within the sphere--the 90-degree corner is at the
+	// chord midpoint, and its legs extend to the sphere center and to one of
+	// the ray's 2 hit-points. The triangle's hypotenuse is just the sphere's
+	// radius (==1). One leg's squared length is LM2 (chord midpoint to sphere 
+	// center) and the other leg is the 'half-chord', with length Lhc. Pythagoras:
+	//  LM2 + Lhc*Lhc = r^2 = 1.0 or Lhc*Lhc = (1.0 - LM2) == L2hc
+	var L2hc = (1.0 - LM2); // SQUARED half-chord length.
 
-var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
-chit.hitTime = t0;
-chit.hitObject = this;
-vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, t0); 
-chit.modelHitPoint[3] = 1;
-vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
-chit.hitPoint[3] = 1;
-vec4.negate(chit.viewN, inRay.dir);
-chit.viewN[3] = 0;
-vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
-vec4.transformMat4(chit.hitNormal, vec4.fromValues(chit.modelHitPoint[0],chit.modelHitPoint[1],chit.modelHitPoint[2],0), this.normal2world);
-chit.hitNormal[3] = 0;
-vec4.normalize(chit.hitNormal, chit.hitNormal);
+	// STEP 5: Measure RAY using 2nd triangle-------------------------------------
+	// COOL! the **ray-length** at hit-points are = tca +/- sqrt(L2hc)!
+	//  But wait--we want something else:
+	//      --we want the t value for those hit-points, and
+	//      --we must do it WITHOUT normalizing tdir (and that's important)!
+	//        ASIDE: We simply CAN'T normalize tdir; that would change the 
+	//               t-values of the points where the ray hits the sphere in the 
+	//               'model' coord. sys. We need those non-normalized t values 
+	//                because we use them again on the world-space version of our 
+	//                ray (e.g. inRay) to find the world-space hit-point. We
+	//                then use the world-space hit-point to find shadows, shading,
+	//                transparency, texture, and more.
+	// Algebra finds our t values:
+	// Lets find **ray-length** in terms of the desired value t:
+	//    **ray-length** = tca +/- sqrt(L2hc), and
+	//    **ray-length** = t * length(tdir), and DL2 = (length(tdir))^2.
+	//   Solve for t: 
+	//      t = **ray-length** /length(tdir) = **ray-length** /sqrt(DL2)
+	//        = (tca +/- sqrt(L2hc)) / sqrt(DL2)
+	//        = tca/sqrt(DL2) +/- sqrt(L2hc/DL2)
+	//        Recall that tcaS = tca*length(tdir) = tca*sqrt(DL2), so
+	//                  tcaS/DL2 = tca*sqrt(DL2) / (sqrt(DL2)*sqrt(DL2))
+	//                           =          tca / sqrt(DL2)  and thus:
+	//      ====================================
+	//      t0hit = tcaS/DL2 - sqrt(L2hc/DL2)
+	//      t1hit = tcaS/DL2 + sqrt(L2hc/DL2)
+	//      ====================================
+	//  We know both hit-points are in front of ray, thus t0hit >0 and t1hit >0.
+	//  We also know that Math.sqrt() always returns values >=0, and thus
+	// we know the hit-point NEAREST the ray's origin MUST be t0hit. 
+	var t0 = tcaS / DL2 - Math.sqrt(L2hc / DL2);  // closer of the 2 hit-points.
+	//  if(t0hit > myHit.t0) {    // is this new hit-point CLOSER than 'myHit'?
+	//    return;       // NO.  DON'T change myHit, don't do any further calcs. Bye!
+	//  }
 
-if (this.material == GMAT_CHECKERBOARD)
-{
-	var tot = Math.floor(chit.modelHitPoint[0] / this.xgap) + Math.floor(chit.modelHitPoint[1] / this.ygap) + Math.floor(chit.modelHitPoint[2] / this.zgap);
+	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0));
+	chit.hitTime = t0;
+	chit.hitObject = this;
+	vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, t0);
+	chit.modelHitPoint[3] = 1;
+	vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+	chit.hitPoint[3] = 1;
+	vec4.negate(chit.viewN, inRay.dir);
+	chit.viewN[3] = 0;
+	vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
+	vec4.transformMat4(chit.hitNormal, vec4.fromValues(chit.modelHitPoint[0], chit.modelHitPoint[1], chit.modelHitPoint[2], 0), this.normal2world);
+	chit.hitNormal[3] = 0;
+	vec4.normalize(chit.hitNormal, chit.hitNormal);
 
-	if (tot < 0)
-	{
-		tot = -tot;
+	if (this.material == GMAT_CHECKERBOARD) {
+		var tot = Math.floor(chit.modelHitPoint[0] / this.xgap) + Math.floor(chit.modelHitPoint[1] / this.ygap) + Math.floor(chit.modelHitPoint[2] / this.zgap);
+
+		if (tot < 0) {
+			tot = -tot;
+		}
+
+		if (tot % 2) {
+			chit.surface = 2;         // No.
+			inter.unshift(chit);
+			return 0;
+		}
+		else {
+			chit.surface = 3;         // No.
+			inter.unshift(chit);
+			return 1;
+		}
 	}
-
-	if (tot%2)
-	{
-		chit.surface = 2;         // No.
-		inter.unshift(chit); 
-		return 0;
-	}
-	else
-	{
-		chit.surface = 3;         // No.
-		inter.unshift(chit); 
+	else {
+		chit.surface = this.material;         // No.
+		inter.unshift(chit);
 		return 1;
 	}
-}
-else
-{
-	chit.surface = this.material;         // No.
-	inter.unshift(chit); 
-	return 1;
-}
 
 }
 
-CGeom.prototype.traceBox = function (inRay, inter) 
-{
-	
+CGeom.prototype.traceBox = function (inRay, inter) {
+
 	//------------------ Step 1: transform 'inRay' by this.worldRay2model matrix;
 	var rayT = new CRay();    // to create 'rayT', our local model-space ray.
 	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
 	vec4.copy(rayT.dir, inRay.dir);
-							  // (DON'T do this: rayT = inRay; // that sets rayT
-							  // as a REFERENCE to inRay. Any change to rayT is
-							  // also a change to inRay (!!).
+	// (DON'T do this: rayT = inRay; // that sets rayT
+	// as a REFERENCE to inRay. Any change to rayT is
+	// also a change to inRay (!!).
 	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
-	vec4.transformMat4(rayT.dir,  inRay.dir,  this.world2model);
+	vec4.transformMat4(rayT.dir, inRay.dir, this.world2model);
 
 	this.diskRad = 1.0;
 
 	txMin = (-1 - rayT.orig[0]) / rayT.dir[0];
 	txMax = (1 - rayT.orig[0]) / rayT.dir[0];
-	
+
 	//console.log("xmin: " + txMin + "	xmax: " + txMax);
 	tyMin = (-1 - rayT.orig[1]) / rayT.dir[1];
 	tyMax = (1 - rayT.orig[1]) / rayT.dir[1];
@@ -848,71 +840,61 @@ CGeom.prototype.traceBox = function (inRay, inter)
 	tzMax = (1 - rayT.orig[2]) / rayT.dir[2];
 
 	var temp;
-	if (txMin > txMax)
-	{
+	if (txMin > txMax) {
 		temp = txMin;
 		txMin = txMax;
 		txMax = temp;
 	}
-	if (tyMin > tyMax)
-	{
+	if (tyMin > tyMax) {
 		temp = tyMin;
 		tyMin = tyMax;
 		tyMax = temp;
 	}
-	if (tzMin > tzMax)
-	{
+	if (tzMin > tzMax) {
 		temp = tzMin;
 		tzMin = tzMax;
 		tzMax = temp;
 	}
 
 	//check intervals
-	if (tyMin > txMax || txMin > tyMax)
-	{
+	if (tyMin > txMax || txMin > tyMax) {
 		//no intersection
 		return -1;
 	}
-	if (tzMin > txMax || txMin > tzMax)
-	{
+	if (tzMin > txMax || txMin > tzMax) {
 		return -1;
 	}
-	if (tzMin > tyMax || tyMin > tzMax)
-	{
+	if (tzMin > tyMax || tyMin > tzMax) {
 		return -1;
 	}
 
 	//hit
 	//determine earliest hit point
-	
 
-	if (txMin < 0)
-	{
+
+	if (txMin < 0) {
 		txMin = -999999;
 	}
-	if (tyMin < 0)
-	{
+	if (tyMin < 0) {
 		tyMin = -999999;
 	}
-	if (tzMin < 0)
-	{
+	if (tzMin < 0) {
 		tzMin = -999999;
 	}
 	t0 = Math.max(txMin, tyMin, tzMin);
-	if (t0 == -999999)
-	{
+	if (t0 == -999999) {
 		return -1;
 	}
-	if (g_flag < 100)
+	/* if (g_flag < 100)
 		{
 			console.log(t0);
 			g_flag++;
-		} 
+		}  */
 
-	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0));
 	chit.hitTime = t0;
 	chit.hitObject = this;
-	vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, t0); 
+	vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, t0);
 	chit.modelHitPoint[3] = 1;
 	//console.log(chit.modelHitPoint);
 	vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
@@ -924,75 +906,65 @@ CGeom.prototype.traceBox = function (inRay, inter)
 
 	var normal = vec4.create();
 	normal[3] = 0;
-	for (var i = 0; i < 3; i++)
-	{
-		if (chit.modelHitPoint[i] == 1)
-		{
+	for (var i = 0; i < 3; i++) {
+		if (chit.modelHitPoint[i] == 1) {
 			normal[i] = 1;
 		}
-		else if (chit.modelHitPoint[i] == -1)
-		{
+		else if (chit.modelHitPoint[i] == -1) {
 			normal[i] = -1;
 		}
-		else
-		{
+		else {
 			normal[i] = 0;
 		}
 	}
 	normal[3] = 0;
-	
+
 	vec4.transformMat4(chit.hitNormal, normal, this.normal2world);
 	chit.hitNormal[3] = 0;
 	vec4.normalize(chit.hitNormal, chit.hitNormal);
-	
-	chit.surface = this.material;         
-	inter.unshift(chit); 
+
+	chit.surface = this.material;
+	inter.unshift(chit);
 	return 1;
 }
 
 //normal algorithm from http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/
-function estimateNormal(point)
-{
+function estimateNormal(point) {
 
 }
 
 // SDF algorithm from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm
-function octahedronSDF(point, size)
-{
+function octahedronSDF(point, size) {
 
-	
+
 	point[0] = Math.abs(point[0]);
-	
+
 	point[1] = Math.abs(point[1]);
 	point[2] = Math.abs(point[2]);
 
 	m = point[0] + point[1] + point[2];
 	var q = vec4.create();
 
-	if (3*point[0] < m)
-	{
+	if (3 * point[0] < m) {
 		q = vec4.fromValues(point[0], point[1], point[2]);
 	}
-	else if (3*point[1] < m)
-	{
+	else if (3 * point[1] < m) {
 		q = vec4.fromValues(point[1], point[2], point[0]);
 	}
-	else if  (3*point[2] < m)
-	{
+	else if (3 * point[2] < m) {
 		q = vec4.fromValues(point[1], point[2], point[0]);
 	}
-	else
-	{
-		return m*0.57735027;
+	else {
+		return m * 0.57735027;
 	}
 	q[3] = 1.0;
 
 	var k = Math.max(0.0, Math.min(0.5 * (q[2] - q[1] + size), size));
 	var result = vec3.fromValues(q[0], q[1] - size + k, q[2] - k);
 	return vec3.length(result);
-		
+
 	//return (point[0] + point[1] + point[2] - size) * 0.57735027;
- 
+
 	//return vec4.length(point) - 1;
 }
 g_flag2 = 0;
@@ -1002,15 +974,14 @@ CGeom.prototype.traceOctahedron = function (inRay, inter) {
 	var rayT = new CRay();    // to create 'rayT', our local model-space ray.
 	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
 	vec4.copy(rayT.dir, inRay.dir);
-							  // (DON'T do this: rayT = inRay; // that sets rayT
-							  // as a REFERENCE to inRay. Any change to rayT is
-							  // also a change to inRay (!!).
+	// (DON'T do this: rayT = inRay; // that sets rayT
+	// as a REFERENCE to inRay. Any change to rayT is
+	// also a change to inRay (!!).
 	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
-	vec4.transformMat4(rayT.dir,  inRay.dir,  this.world2model);
+	vec4.transformMat4(rayT.dir, inRay.dir, this.world2model);
 
 	var depth = 0.0;
-	for (var i = 0; i < 200; i++)
-	{
+	for (var i = 0; i < 200; i++) {
 		var point = vec4.create();
 		vec4.copy(point, rayT.orig);
 
@@ -1022,41 +993,37 @@ CGeom.prototype.traceOctahedron = function (inRay, inter) {
 		var distance = octahedronSDF(point, this.diskRad);
 
 
-		if (distance < 1)
-		{
+		if (distance < 1) {
 			// hit
-			var chit = new CHit(distance, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+			var chit = new CHit(distance, this, true, 0, vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0), vec4.fromValues(0.0, 0.0, 0.0));
 			chit.hitTime = distance;
 			chit.hitObject = this;
-			vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, distance); 
+			vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, distance);
 			chit.modelHitPoint[3] = 1;
 			vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
 			chit.hitPoint[3] = 1;
 			vec4.negate(chit.viewN, inRay.dir);
 			chit.viewN[3] = 0;
 			vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
-			vec4.transformMat4(chit.hitNormal, vec4.fromValues(chit.modelHitPoint[0],chit.modelHitPoint[1],chit.modelHitPoint[2],0), this.normal2world);
+			vec4.transformMat4(chit.hitNormal, vec4.fromValues(chit.modelHitPoint[0], chit.modelHitPoint[1], chit.modelHitPoint[2], 0), this.normal2world);
 			chit.hitNormal[3] = 0;
 			vec4.normalize(chit.hitNormal, chit.hitNormal);
 
 			chit.surface = this.material;         // No.
-			inter.unshift(chit); 
-	if (g_flag2 < 100)
-		{
-			console.log("HIT   " + chit.hitPoint);
-			g_flag2++;
-		} 
+			inter.unshift(chit);
+			if (g_flag2 < 100) {
+				console.log("HIT   " + chit.hitPoint);
+				g_flag2++;
+			}
 			return 1;
-		}if (g_flag < 100)
-		{
+		} if (g_flag < 100) {
 			console.log(depth);
 			g_flag++;
-		} 
+		}
 
 		depth += distance;
- 		
-		if (depth >= 50000)
-		{
+
+		if (depth >= 50000) {
 			//miss
 			return -1;
 		}
@@ -1311,48 +1278,6 @@ function CScene(scene) {
 	this.rayCamera = new CCamera();
 	this.eyeRay = new CRay();
 	this.eyeHits = new CHitList();
-	this.item = [];
-	//this.item.push(new CGeom(JT_GNDPLANE));
-	//this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
-	//this.item.push(new CGeom(JT_DISK));
-	//this.item[1].rayTranslate(0, 0, 4);
-	this.item.push(new CGeom(JT_GNDPLANE));
-	//this.item.push(new CGeom(JT_SPHERE, GMAT_PEARL));
-	//this.item[0].rayTranslate(0, 0, 1.2);
-
-	this.item.push(new CGeom(JT_SPHERE, GMAT_CHECKERBOARD));
-	//this.item[3].rayTranslate(0, 3, 3);
-	this.item[1].gapColor = vec4.fromValues(.05, .7, .6);
-	this.item[1].rayTranslate(-.63, 3, .7);
-	this.item[1].rayScale(1, 1, .7);
-	this.item.push(new CGeom(JT_SPHERE, GMAT_JADE));
-	this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
-	this.item[2].rayTranslate(1.43, 4, 1);
-	
-	this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
-	this.item[3].rayTranslate(-2, 0, 1);
-
-	this.item.push(new CGeom(JT_BOX, GMAT_PEARL));
-	this.item[4].rayTranslate(0, 0, 1);
-
-	this.item.push(new CGeom(JT_BOX, GMAT_GOLD));
-	this.item[5].rayTranslate(0, 0, 2.33);
-	this.item[5].rayRotate(Math.PI/5, 0, 0, 1);
-	this.item[5].rayScale(1, 1, .33);
-
-	this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
-	this.item[6].rayTranslate(0, 0, 3.33);
-	this.item[6].rayScale(1, 1, 1.33);
-
-	this.item.push(new CGeom(JT_BOX, GMAT_SILVER));
-	this.item[7].rayTranslate(3, 0, 3);
-	//this.item[7].rayRotate(Math.PI/6, 0, -1, 1);
-	this.item[7].rayScale(.1, 3, 3);
-
-	this.item.push(new CGeom(JT_BOX, GMAT_SILVER));
-	this.item[8].rayTranslate(-3, 0, 3);
-	//this.item[8].rayRotate(Math.PI/6, 0, -1, 1);
-	this.item[8].rayScale(.1, 3, 3);
 
 	this.materials = [];
 	this.materials.push(new Material(MATL_JADE));
@@ -1360,7 +1285,7 @@ function CScene(scene) {
 	this.materials.push(new Material(MATL_GOLD_SHINY));
 	this.materials.push(new Material(MATL_PEARL));
 	this.materials.push(new Material(MATL_SILVER_SHINY));
-	
+
 	var lamp = new LightsT();
 	this.lights = [];
 	this.lights.push(lamp);
@@ -1375,6 +1300,81 @@ function CScene(scene) {
 	this.lights[1].I_ambi = vec3.fromValues(.2, .2, .2);
 	this.lights[1].I_diff = vec3.fromValues(.2, .2, .2);
 	this.lights[1].I_spec = vec3.fromValues(.2, .2, .2);
+	this.item = [];
+	//this.item.push(new CGeom(JT_GNDPLANE));
+	//this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
+	//this.item.push(new CGeom(JT_DISK));
+	//this.item[1].rayTranslate(0, 0, 4);
+	this.item.push(new CGeom(JT_GNDPLANE));
+	//this.item.push(new CGeom(JT_SPHERE, GMAT_PEARL));
+	//this.item[0].rayTranslate(0, 0, 1.2);
+	if (g_SceneNum == 0) {
+		this.item.push(new CGeom(JT_SPHERE, GMAT_CHECKERBOARD));
+		//this.item[3].rayTranslate(0, 3, 3);
+		this.item[1].gapColor = vec4.fromValues(.05, .7, .6);
+		this.item[1].rayTranslate(-.63, 3, .7);
+		this.item[1].rayScale(1, 1, .7);
+		this.item.push(new CGeom(JT_SPHERE, GMAT_JADE));
+		this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
+		this.item[2].rayTranslate(1.43, 4, 1);
+
+		this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
+		this.item[3].rayTranslate(-2, 0, 1);
+
+		this.item.push(new CGeom(JT_BOX, GMAT_PEARL));
+		this.item[4].rayTranslate(0, 0, 1);
+
+		this.item.push(new CGeom(JT_BOX, GMAT_GOLD));
+		this.item[5].rayTranslate(0, 0, 2.33);
+		this.item[5].rayRotate(Math.PI / 5, 0, 0, 1);
+		this.item[5].rayScale(1, 1, .33);
+
+		this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
+		this.item[6].rayTranslate(0, 0, 3.33);
+		this.item[6].rayScale(1, 1, 1.33);
+
+		this.item.push(new CGeom(JT_BOX, GMAT_SILVER));
+		this.item[7].rayTranslate(3, 0, 3);
+		//this.item[7].rayRotate(Math.PI/6, 0, -1, 1);
+		this.item[7].rayScale(.1, 3, 3);
+
+		this.item.push(new CGeom(JT_BOX, GMAT_SILVER));
+		this.item[8].rayTranslate(-3, 0, 3);
+		//this.item[8].rayRotate(Math.PI/6, 0, -1, 1);
+		this.item[8].rayScale(.1, 3, 3);
+	}
+	else if (g_SceneNum == 1) {
+		this.item = [];
+		this.item.push(new CGeom(JT_GNDPLANE));
+
+		this.item.push(new CGeom(JT_BOX, GMAT_PEARL));
+		this.item[1].rayTranslate(0, 0, 3);
+		this.item[1].rayRotate(Math.PI / 4, 0, 0, 1);
+		this.item[1].rayScale(.1, 5, 3);
+
+		this.item.push(new CGeom(JT_BOX, GMAT_TURQUOISE));
+		this.item[2].rayTranslate(0, 0, 3);
+		this.item[2].rayRotate(Math.PI / 4, 0, 0, -1);
+		this.item[2].rayScale(.1, 5, 3);
+
+		this.item.push(new CGeom(JT_BOX, GMAT_JADE));
+		this.item[3].rayTranslate(0, 2, 3.5);
+		this.item[3].rayRotate(Math.PI / 4, -1, 0, 0);
+		this.item[3].rayRotate(Math.PI / 4, 0, 0, -1);
+		this.item[3].rayScale(.5, .5, .5);
+
+		this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
+		this.item[4].rayTranslate(0, 3, 1.5);
+		this.item[4].rayScale(1.5, 1.5, 1.5);
+
+		this.item.push(new CGeom(JT_SPHERE, GMAT_GOLD));
+		this.item[5].rayTranslate(1.5, 6, 1);
+		this.item[5].rayScale(1.5, 1.5, 1.5);
+
+		this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
+		this.item[6].rayTranslate(-1, 6, 1);
+		this.item[6].rayScale(1, 1, 1);
+	}
 }
 
 CScene.prototype.makeRayTracedImage = function () {
@@ -1393,8 +1393,8 @@ CScene.prototype.makeRayTracedImage = function () {
 	var i, j;
 	var offset = 1 / g_AAcode;
 	var start = offset / 2;
-	console.log(offset);
-	console.log(start);
+	//console.log(offset);
+	//console.log(start);
 	for (j = 0; j < this.imageBuffer.ySiz; j++) {     // for the j-th row of pixels.
 		for (i = 0; i < this.imageBuffer.xSiz; i++) {	 // and the i-th pixel on that row,
 			colr[0] = 0;
@@ -1409,8 +1409,8 @@ CScene.prototype.makeRayTracedImage = function () {
 					this.rayCamera.setEyeRay(this.eyeRay, i + start + (subcol * offset), j + start + (subrow * offset)); //.25, .75
 					//colr = this.shade(this.eyeRay);
 					vec4.add(colr, colr, this.shade(this.eyeRay, g_reflections));
-					if (i == 0 && j == 0) console.log('eyeRay:', this.eyeRay); // print first ray
-					if (i == 0 && j == 0) console.log('col number', i + start + (subcol * offset));
+					//if (i == 0 && j == 0) console.log('eyeRay:', this.eyeRay); // print first ray
+					//if (i == 0 && j == 0) console.log('col number', i + start + (subcol * offset));
 					//		var best = [];
 					//		hit = this.item[0].traceGrid(this.eyeRay, best);						// trace ray to the grid
 					//		if (hit == 0) {
@@ -1426,9 +1426,9 @@ CScene.prototype.makeRayTracedImage = function () {
 
 				}
 			}
-			colr[0] = colr[0] / (g_AAcode*g_AAcode);
-			colr[1] = colr[1] / (g_AAcode*g_AAcode);
-			colr[2] = colr[2] / (g_AAcode*g_AAcode);
+			colr[0] = colr[0] / (g_AAcode * g_AAcode);
+			colr[1] = colr[1] / (g_AAcode * g_AAcode);
+			colr[2] = colr[2] / (g_AAcode * g_AAcode);
 			colr[3] = 1;
 
 			idx = (j * this.imageBuffer.xSiz + i) * this.imageBuffer.pixSiz;	// Array index at pixel (i,j) 
@@ -1474,22 +1474,20 @@ CScene.prototype.shade = function (ray, reflections) {
 		vec4.sub(lightDirection, this.lights[i].I_pos, best[0].hitPoint);
 		lightDirection[3] = 0.0;
 		vec4.normalize(lightDirection, lightDirection);
-		
+
 		var shadowRay = new CRay;
-		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, ray.dir, -10000000000*this.RAY_EPSILON); //epsilon doesnt work here
+		shadowRay.orig = vec4.scaleAndAdd(shadowRay.orig, best[0].hitPoint, ray.dir, -10000000000 * this.RAY_EPSILON); //epsilon doesnt work here
 		//shadowRay.orig = best[0].hitPoint;
 		shadowRay.dir = lightDirection;
-		
+
 		var shadowHit = [];
 		this.getFirstHit(shadowRay, shadowHit);
 
 		var inShadow;
-		if (shadowHit.length == 0)
-		{
+		if (shadowHit.length == 0) {
 			inShadow = false;
 		}
-		else
-		{
+		else {
 			inShadow = true;
 		}
 
@@ -1497,32 +1495,32 @@ CScene.prototype.shade = function (ray, reflections) {
 		var eyeDirection = vec4.create();
 		//console.log("viewN: " + best[0].viewN + "	ray.dir: " + ray.dir);
 		//vec4.negate(eyeDirection, eyeDirection);
-		vec4.negate(eyeDirection, ray.dir); 
+		vec4.negate(eyeDirection, ray.dir);
 		vec4.normalize(eyeDirection, eyeDirection);
-		
+
 		//vec4.normalize(eyeDirection, eyeDirection);
 		var nDotL = Math.max(vec4.dot(lightDirection, best[0].hitNormal), 0.0);
-		
+
 		var H = vec4.create();
 		vec4.add(H, lightDirection, eyeDirection);
 		vec4.normalize(H, H);
 		var nDotH = Math.max(vec4.dot(H, best[0].hitNormal), 0.0);
 		var pow_nDotH = Math.pow(nDotH, this.materials[best[0].surface].K_shiny);
-		
+
 		var reflectVec = vec4.create();
 		var c = vec4.create();
 		vec4.scale(c, best[0].hitNormal, vec4.dot(lightDirection, best[0].hitNormal));
 		vec4.scale(reflectVec, c, 2);
 		vec4.sub(reflectVec, reflectVec, lightDirection);
-		
+
 		var rDotv = Math.max(vec4.dot(reflectVec, eyeDirection), 0.0);
 		var phong_pow = Math.pow(rDotv, this.materials[best[0].surface].K_shiny);
 		/*  if (g_flag < 100)
  {
- 	console.log(phong_pow);
- 	g_flag++;
+	  console.log(phong_pow);
+	  g_flag++;
  }  */
- 		var emissive = vec4.fromValues(this.materials[best[0].surface].K_emit[0], this.materials[best[0].surface].K_emit[1], this.materials[best[0].surface].K_emit[2], 1.0);
+		var emissive = vec4.fromValues(this.materials[best[0].surface].K_emit[0], this.materials[best[0].surface].K_emit[1], this.materials[best[0].surface].K_emit[2], 1.0);
 		var diffuse = vec4.fromValues(this.materials[best[0].surface].K_diff[0], this.materials[best[0].surface].K_diff[1], this.materials[best[0].surface].K_diff[2], 1.0);
 		vec4.scale(diffuse, diffuse, nDotL);
 		vec4.multiply(diffuse, diffuse, this.lights[i].I_diff);
@@ -1536,82 +1534,74 @@ CScene.prototype.shade = function (ray, reflections) {
 		vec4.scale(specular, specular, pow_nDotH);
 		vec4.multiply(specular, specular, this.lights[i].I_spec);
 		specular[3] = 1.0;
-		
-		if (inShadow)
-		{
+
+		if (inShadow) {
 			vec4.scale(diffuse, diffuse, 0);
 			vec4.scale(specular, specular, 0);
 		}
 
-			vec4.add(color, color, diffuse);
-			vec4.add(color, color, ambient);
-			vec4.add(color, color, emissive);
-			vec4.add(color, color, specular);
+		vec4.add(color, color, diffuse);
+		vec4.add(color, color, ambient);
+		vec4.add(color, color, emissive);
+		vec4.add(color, color, specular);
 
-	
 
-		
+
+
 	}
 
-	if (reflections == 0)
-		{
-			return color;
-		}
-		else
-		{
-			var reflectRay = new CRay;
-			reflectRay.orig = vec4.create();
-			reflectRay.orig = vec4.scaleAndAdd(reflectRay.orig, best[0].hitPoint, ray.dir, -10000000000*this.RAY_EPSILON); 
-			reflectRay.orig[3] = 1.0;
-			
-			var viewReflectVec = vec4.create();
-			var viewC = vec4.create();
+	if (reflections == 0) {
+		return color;
+	}
+	else {
+		var reflectRay = new CRay;
+		reflectRay.orig = vec4.create();
+		reflectRay.orig = vec4.scaleAndAdd(reflectRay.orig, best[0].hitPoint, ray.dir, -10000000000 * this.RAY_EPSILON);
+		reflectRay.orig[3] = 1.0;
 
-			//console.log(best[0].hitNormal);
-			vec4.scale(viewC, best[0].hitNormal, vec4.dot(eyeDirection, best[0].hitNormal));
-			vec4.scale(viewReflectVec, viewC, 2);
-			vec4.sub(viewReflectVec, viewReflectVec, eyeDirection);
-			viewReflectVec[3] = 0;
-			vec4.normalize(viewReflectVec, viewReflectVec)
+		var viewReflectVec = vec4.create();
+		var viewC = vec4.create();
 
-			reflectRay.dir = viewReflectVec;
-			//reflectRay.dir = reflectVec;
-			reflections--;
-			return vec4.scaleAndAdd(color, color, this.shade(reflectRay, reflections), this.materials[best[0].surface].K_shiny * .01);
-			//calculate reflect direction using view vec instead of light dir
-			// seeing some artifacts and unexpected reflections. check that ground plane is returning correct values to work off
-			// ground plane turned off reveals that can see through objects. reflect rays are somehow going through the object? maybe best[] isnt getting cleared correctly
-		}
+		//console.log(best[0].hitNormal);
+		vec4.scale(viewC, best[0].hitNormal, vec4.dot(eyeDirection, best[0].hitNormal));
+		vec4.scale(viewReflectVec, viewC, 2);
+		vec4.sub(viewReflectVec, viewReflectVec, eyeDirection);
+		viewReflectVec[3] = 0;
+		vec4.normalize(viewReflectVec, viewReflectVec)
+
+		reflectRay.dir = viewReflectVec;
+		//reflectRay.dir = reflectVec;
+		reflections--;
+		return vec4.scaleAndAdd(color, color, this.shade(reflectRay, reflections), this.materials[best[0].surface].K_shiny * .01);
+		//calculate reflect direction using view vec instead of light dir
+		// seeing some artifacts and unexpected reflections. check that ground plane is returning correct values to work off
+		// ground plane turned off reveals that can see through objects. reflect rays are somehow going through the object? maybe best[] isnt getting cleared correctly
+	}
 }
 
 CScene.prototype.getFirstHit = function (ray, best) {
 	var inter = [];
-//	best.length = 0; best needs to get emptied at some point; the continue is not happening
+	//	best.length = 0; best needs to get emptied at some point; the continue is not happening
 	for (var i = 0; i < this.item.length; i++) {
-		if (this.item[i].shapeType == 0)
-		{
+		if (this.item[i].shapeType == 0) {
 			hit = this.item[i].traceGrid(ray, inter);
 		}
-		else if (this.item[i].shapeType == 1)
-		{
+		else if (this.item[i].shapeType == 1) {
 			hit = this.item[i].traceDisk(ray, inter);
 		}
-		else if (this.item[i].shapeType == 2)
-		{
+		else if (this.item[i].shapeType == 2) {
 			hit = this.item[i].traceSphere(ray, inter);
 		}
-		else if (this.item[i].shapeType == JT_BOX)
-		{
+		else if (this.item[i].shapeType == JT_BOX) {
 			hit = this.item[i].traceBox(ray, inter);
 		}
-		else if (this.item[i].shapeType == 3)
-		{
+		else if (this.item[i].shapeType == 3) {
 			hit = this.item[i].traceOctahedron(ray, inter);
 		}
-		
+
 		if (hit < 0) {
 			continue;
-			
+
 		}
 		if (best.length == 0 ||
 			inter[0].hitTime < best[0].hitTime) {

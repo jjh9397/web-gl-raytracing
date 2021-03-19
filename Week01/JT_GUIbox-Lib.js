@@ -466,7 +466,7 @@ GUIbox.prototype.keyDown = function (kev) {
 			rayView.switchToMe(); // be sure OUR VBO & shaders are in use, then
       		rayView.adjust();
 			rayView.reload();     // re-transfer VBO contents and texture-map contents
-      		drawAll();
+      		//drawAll();
 			drawAll();
 			break;
 		//------------------WASD navigation-----------------
