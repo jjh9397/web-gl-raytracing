@@ -480,3 +480,42 @@ function lightPos1Submit()
   g_myScene.lights[1].I_pos[1] = UsrTxtArray[1];
   g_myScene.lights[1].I_pos[2] = UsrTxtArray[2];
 }
+
+var g_lampState0 = 1;
+var g_lampState1 = 1;
+
+function onOffToggle0()
+{
+  if (g_lampState0 == 1)
+  {
+    diff_temp = g_myScene.lights[0].I_diff;
+    spec_temp = g_myScene.lights[0].I_spec;
+    g_myScene.lights[0].I_diff = vec4.fromValues(0.0, 0.0, 0.0);
+    g_myScene.lights[0].I_spec = vec4.fromValues(0.0, 0.0, 0.0);
+    g_lampState0 = 0;
+  }
+  else
+  {
+    g_myScene.lights[0].I_diff = diff_temp;
+    g_myScene.lights[0].I_spec = spec_temp;
+    g_lampState0 = 1;
+  }
+}
+
+function onOffToggle1()
+{
+  if (g_lampState1 == 1)
+  {
+    diff_temp = g_myScene.lights[1].I_diff;
+    spec_temp = g_myScene.lights[1].I_spec;
+    g_myScene.lights[1].I_diff = vec4.fromValues(0.0, 0.0, 0.0);
+    g_myScene.lights[1].I_spec = vec4.fromValues(0.0, 0.0, 0.0);
+    g_lampState1 = 0;
+  }
+  else
+  {
+    g_myScene.lights[1].I_diff = diff_temp;
+    g_myScene.lights[1].I_spec = spec_temp;
+    g_lampState1 = 1;
+  }
+}

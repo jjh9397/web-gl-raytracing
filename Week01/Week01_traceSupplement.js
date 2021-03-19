@@ -930,7 +930,7 @@ CGeom.prototype.traceBox = function (inRay, inter)
 		{
 			normal[i] = 1;
 		}
-		else if (chit.modelHitPoint[i] == 1)
+		else if (chit.modelHitPoint[i] == -1)
 		{
 			normal[i] = -1;
 		}
@@ -939,6 +939,7 @@ CGeom.prototype.traceBox = function (inRay, inter)
 			normal[i] = 0;
 		}
 	}
+	normal[3] = 0;
 	
 	vec4.transformMat4(chit.hitNormal, normal, this.normal2world);
 	chit.hitNormal[3] = 0;
@@ -1342,6 +1343,16 @@ function CScene(scene) {
 	this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
 	this.item[6].rayTranslate(0, 0, 3.33);
 	this.item[6].rayScale(1, 1, 1.33);
+
+	this.item.push(new CGeom(JT_BOX, GMAT_SILVER));
+	this.item[7].rayTranslate(3, 0, 3);
+	//this.item[7].rayRotate(Math.PI/6, 0, -1, 1);
+	this.item[7].rayScale(.1, 3, 3);
+
+	this.item.push(new CGeom(JT_BOX, GMAT_SILVER));
+	this.item[8].rayTranslate(-3, 0, 3);
+	//this.item[8].rayRotate(Math.PI/6, 0, -1, 1);
+	this.item[8].rayScale(.1, 3, 3);
 
 	this.materials = [];
 	this.materials.push(new Material(MATL_JADE));

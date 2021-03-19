@@ -210,42 +210,42 @@ VBObox0.prototype.appendCube = function()
   vertCount = 36;
   var vertSet = new Float32Array(vertCount * this.floatsPerVertex);
   vertSet = [
-    -1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0, // triangle 1 : begin
-    -1.0,-1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0, // triangle 1 : end
-     1.0, 1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0, // triangle 2 : begin
-    -1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0, // triangle 2 : end
-     1.0,-1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0, 1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0,-1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0,-1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0,-1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0,-1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0, 1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0,-1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0,-1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0, 1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0,-1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-    -1.0, 1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0,
-     1.0,-1.0, 1.0, 1.0, 0.4, 0.7, 0.8, 1.0] 
+    -1.0,-1.0,-1.0, 1.0, 0.9, 0.7, 0.8, 1.0, // triangle 1 : begin
+    -1.0,-1.0, 1.0, 1.0, 0.9, 0.7, 0.8, 1.0,
+    -1.0, 1.0, 1.0, 1.0, 0.9, 0.7, 0.8, 1.0, // triangle 1 : end
+     1.0, 1.0,-1.0, 1.0, 0.9, 0.7, 0.8, 1.0, // triangle 2 : begin
+    -1.0,-1.0,-1.0, 1.0, 0.9, 0.7, 0.8, 1.0,
+    -1.0, 1.0,-1.0, 1.0, 0.9, 0.7, 0.8, 1.0, // triangle 2 : end
+     1.0,-1.0, 1.0, 1.0, 0.9, 0.2, 0.5, 1.0,
+    -1.0,-1.0,-1.0, 1.0, 0.9, 0.2, 0.5, 1.0,
+     1.0,-1.0,-1.0, 1.0, 0.9, 0.2, 0.5, 1.0,
+     1.0, 1.0,-1.0, 1.0, 0.9, 0.2, 0.5, 1.0,
+     1.0,-1.0,-1.0, 1.0, 0.9, 0.2, 0.5, 1.0,
+    -1.0,-1.0,-1.0, 1.0, 0.9, 0.2, 0.5, 1.0,
+    -1.0,-1.0,-1.0, 1.0, 0.2, 0.7, 0.5, 1.0,
+    -1.0, 1.0, 1.0, 1.0, 0.2, 0.7, 0.5, 1.0,
+    -1.0, 1.0,-1.0, 1.0, 0.2, 0.7, 0.5, 1.0,
+     1.0,-1.0, 1.0, 1.0, 0.2, 0.7, 0.5, 1.0,
+    -1.0,-1.0, 1.0, 1.0, 0.2, 0.7, 0.5, 1.0,
+    -1.0,-1.0,-1.0, 1.0, 0.2, 0.7, 0.5, 1.0,
+    -1.0, 1.0, 1.0, 1.0, 0.2, 0.7, 0.5, 1.0,
+    -1.0,-1.0, 1.0, 1.0, 0.2, 0.7, 0.5, 1.0,
+     1.0,-1.0, 1.0, 1.0, 0.9, 0.7, 0.5, 1.0,
+     1.0, 1.0, 1.0, 1.0, 0.9, 0.7, 0.3, 1.0,
+     1.0,-1.0,-1.0, 1.0, 0.9, 0.7, 0.3, 1.0,
+     1.0, 1.0,-1.0, 1.0, 0.9, 0.7, 0.3, 1.0,
+     1.0,-1.0,-1.0, 1.0, 0.3, 0.7, 0.7, 1.0,
+     1.0, 1.0, 1.0, 1.0, 0.3, 0.7, 0.7, 1.0,
+     1.0,-1.0, 1.0, 1.0, 0.3, 0.7, 0.7, 1.0,
+     1.0, 1.0, 1.0, 1.0, 0.3, 0.7, 0.7, 1.0,
+     1.0, 1.0,-1.0, 1.0, 0.3, 0.7, 0.7, 1.0,
+    -1.0, 1.0,-1.0, 1.0, 0.3, 0.7, 0.7, 1.0,
+     1.0, 1.0, 1.0, 1.0, 0.4, 0.3, 0.3, 1.0,
+    -1.0, 1.0,-1.0, 1.0, 0.4, 0.3, 0.3, 1.0,
+    -1.0, 1.0, 1.0, 1.0, 0.4, 0.3, 0.3, 1.0,
+     1.0, 1.0, 1.0, 1.0, 0.4, 0.3, 0.3, 1.0,
+    -1.0, 1.0, 1.0, 1.0, 0.4, 0.3, 0.3, 1.0,
+     1.0,-1.0, 1.0, 1.0, 0.4, 0.3, 0.3, 1.0] 
 
     var tmp = new Float32Array(this.vboContents.length + vertSet.length);
     tmp.set(this.vboContents, 0);     // copy old VBOcontents into tmp, and
@@ -869,6 +869,32 @@ VBObox0.prototype.draw = function() {
               //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
               this.beginSphere, 								// location of 1st vertex to draw;
               this.beginCube - this.beginSphere);		// number of vertices to draw on-screen.
+
+              mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(3.0, 0.0, 3));
+              mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(0.1, 3.0, 3.0));
+              // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+              gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                  false, 				// use matrix transpose instead?
+                                  this.mvpMat);	// send data from Javascript.
+              mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+              gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                this.beginCube, 								// location of 1st vertex to draw;
+                this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.
+
+                mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(-3.0, 0.0, 3));
+                mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(0.1, 3.0, 3.0));
+                // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+                gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                    false, 				// use matrix transpose instead?
+                                    this.mvpMat);	// send data from Javascript.
+                mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+                gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                  // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                  //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                  this.beginCube, 								// location of 1st vertex to draw;
+                  this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.
 }
 
 VBObox0.prototype.reload = function() {
