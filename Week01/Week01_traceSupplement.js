@@ -335,12 +335,12 @@ CCamera.prototype.printMe = function () {
 const JT_GNDPLANE = 0;    // An endless 'ground plane' surface.
 const JT_DISK     = 1;
 const JT_SPHERE   = 2;    // A sphere.
-const JT_BOX      = 3;    // An axis-aligned cube.
+const JT_OCTAHEDRON      = 3;    // An axis-aligned cube.
 const JT_CYLINDER = 4;    // A cylinder with user-settable radius at each end
                         // and user-settable length.  radius of 0 at either
                         // end makes a cone; length of 0 with nonzero
                         // radius at each end makes a disk.
-const JT_TRIANGLE = 5;    // a triangle with 3 vertices.
+const JT_BOX = 5;    // a triangle with 3 vertices.
 const JT_BLOBBIES = 6;    // Implicit surface:Blinn-style Gaussian 'blobbies'.
 
 const GMAT_CHECKERBOARD = -1;
@@ -407,12 +407,12 @@ function CGeom(shapeSelect, materialSelect) {
 			this.zgap = .25;
 			break;
 			}
-		case JT_BOX:
-			this.traceMe = function (inR, hit) { this.traceBox(inR, hit); }; break;
+		case JT_OCTAHEDRON:
+			this.traceMe = function (inR, hit) { this.traceOctahedron(inR, hit); }; break;
 		case JT_CYLINDER:
 			this.traceMe = function (inR, hit) { this.traceCyl(inR, hit); }; break;
-		case JT_TRIANGLE:
-			this.traceMe = function (inR, hit) { this.traceTri(inR, hit); }; break;
+		case JT_BOX:
+			this.traceMe = function (inR, hit) { this.traceBox(inR, hit); }; break;
 		case JT_BLOBBY:
 			this.traceMe = function (inR, hit) { this.traceBlobby(inR, hit); }; break;
 		default:
@@ -820,9 +820,248 @@ else
 	return 1;
 }
 
-  
 }
 
+CGeom.prototype.traceBox = function (inRay, inter) 
+{
+	
+	//------------------ Step 1: transform 'inRay' by this.worldRay2model matrix;
+	var rayT = new CRay();    // to create 'rayT', our local model-space ray.
+	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
+	vec4.copy(rayT.dir, inRay.dir);
+							  // (DON'T do this: rayT = inRay; // that sets rayT
+							  // as a REFERENCE to inRay. Any change to rayT is
+							  // also a change to inRay (!!).
+	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
+	vec4.transformMat4(rayT.dir,  inRay.dir,  this.world2model);
+
+	this.diskRad = 1.0;
+
+	txMin = (-1 - rayT.orig[0]) / rayT.dir[0];
+	txMax = (1 - rayT.orig[0]) / rayT.dir[0];
+	
+	//console.log("xmin: " + txMin + "	xmax: " + txMax);
+	tyMin = (-1 - rayT.orig[1]) / rayT.dir[1];
+	tyMax = (1 - rayT.orig[1]) / rayT.dir[1];
+
+	tzMin = (-1 - rayT.orig[2]) / rayT.dir[2];
+	tzMax = (1 - rayT.orig[2]) / rayT.dir[2];
+
+	var temp;
+	if (txMin > txMax)
+	{
+		temp = txMin;
+		txMin = txMax;
+		txMax = temp;
+	}
+	if (tyMin > tyMax)
+	{
+		temp = tyMin;
+		tyMin = tyMax;
+		tyMax = temp;
+	}
+	if (tzMin > tzMax)
+	{
+		temp = tzMin;
+		tzMin = tzMax;
+		tzMax = temp;
+	}
+
+	//check intervals
+	if (tyMin > txMax || txMin > tyMax)
+	{
+		//no intersection
+		return -1;
+	}
+	if (tzMin > txMax || txMin > tzMax)
+	{
+		return -1;
+	}
+	if (tzMin > tyMax || tyMin > tzMax)
+	{
+		return -1;
+	}
+
+	//hit
+	//determine earliest hit point
+	
+
+	if (txMin < 0)
+	{
+		txMin = -999999;
+	}
+	if (tyMin < 0)
+	{
+		tyMin = -999999;
+	}
+	if (tzMin < 0)
+	{
+		tzMin = -999999;
+	}
+	t0 = Math.max(txMin, tyMin, tzMin);
+	if (t0 == -999999)
+	{
+		return -1;
+	}
+	if (g_flag < 100)
+		{
+			console.log(t0);
+			g_flag++;
+		} 
+
+	var chit = new CHit(t0, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+	chit.hitTime = t0;
+	chit.hitObject = this;
+	vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, t0); 
+	chit.modelHitPoint[3] = 1;
+	//console.log(chit.modelHitPoint);
+	vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+	chit.hitPoint[3] = 1;
+	vec4.negate(chit.viewN, inRay.dir);
+	chit.viewN[3] = 0;
+	vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
+
+
+	var normal = vec4.create();
+	normal[3] = 0;
+	for (var i = 0; i < 3; i++)
+	{
+		if (chit.modelHitPoint[i] == 1)
+		{
+			normal[i] = 1;
+		}
+		else if (chit.modelHitPoint[i] == 1)
+		{
+			normal[i] = -1;
+		}
+		else
+		{
+			normal[i] = 0;
+		}
+	}
+	
+	vec4.transformMat4(chit.hitNormal, normal, this.normal2world);
+	chit.hitNormal[3] = 0;
+	vec4.normalize(chit.hitNormal, chit.hitNormal);
+	
+	chit.surface = this.material;         
+	inter.unshift(chit); 
+	return 1;
+}
+
+//normal algorithm from http://jamie-wong.com/2016/07/15/ray-marching-signed-distance-functions/
+function estimateNormal(point)
+{
+
+}
+
+// SDF algorithm from https://iquilezles.org/www/articles/distfunctions/distfunctions.htm
+function octahedronSDF(point, size)
+{
+
+	
+	point[0] = Math.abs(point[0]);
+	
+	point[1] = Math.abs(point[1]);
+	point[2] = Math.abs(point[2]);
+
+	m = point[0] + point[1] + point[2];
+	var q = vec4.create();
+
+	if (3*point[0] < m)
+	{
+		q = vec4.fromValues(point[0], point[1], point[2]);
+	}
+	else if (3*point[1] < m)
+	{
+		q = vec4.fromValues(point[1], point[2], point[0]);
+	}
+	else if  (3*point[2] < m)
+	{
+		q = vec4.fromValues(point[1], point[2], point[0]);
+	}
+	else
+	{
+		return m*0.57735027;
+	}
+	q[3] = 1.0;
+
+	var k = Math.max(0.0, Math.min(0.5 * (q[2] - q[1] + size), size));
+	var result = vec3.fromValues(q[0], q[1] - size + k, q[2] - k);
+	return vec3.length(result);
+		
+	//return (point[0] + point[1] + point[2] - size) * 0.57735027;
+ 
+	//return vec4.length(point) - 1;
+}
+g_flag2 = 0;
+
+CGeom.prototype.traceOctahedron = function (inRay, inter) {
+	this.diskRad = 2.0;
+	var rayT = new CRay();    // to create 'rayT', our local model-space ray.
+	vec4.copy(rayT.orig, inRay.orig);   // memory-to-memory copy. 
+	vec4.copy(rayT.dir, inRay.dir);
+							  // (DON'T do this: rayT = inRay; // that sets rayT
+							  // as a REFERENCE to inRay. Any change to rayT is
+							  // also a change to inRay (!!).
+	vec4.transformMat4(rayT.orig, inRay.orig, this.world2model);
+	vec4.transformMat4(rayT.dir,  inRay.dir,  this.world2model);
+
+	var depth = 0.0;
+	for (var i = 0; i < 200; i++)
+	{
+		var point = vec4.create();
+		vec4.copy(point, rayT.orig);
+
+		//vec4.scaleAndAdd(point, rayT.dir, 1);
+		vec4.scaleAndAdd(point, point, rayT.dir, depth);
+
+
+
+		var distance = octahedronSDF(point, this.diskRad);
+
+
+		if (distance < 1)
+		{
+			// hit
+			var chit = new CHit(distance, this, true, 0, vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0), vec4.fromValues(0.0,0.0,0.0),vec4.fromValues(0.0,0.0,0.0));
+			chit.hitTime = distance;
+			chit.hitObject = this;
+			vec4.scaleAndAdd(chit.modelHitPoint, rayT.orig, rayT.dir, distance); 
+			chit.modelHitPoint[3] = 1;
+			vec4.scaleAndAdd(chit.hitPoint, inRay.orig, inRay.dir, chit.hitTime);
+			chit.hitPoint[3] = 1;
+			vec4.negate(chit.viewN, inRay.dir);
+			chit.viewN[3] = 0;
+			vec4.normalize(chit.viewN, chit.viewN); // ensure a unit-length vector.
+			vec4.transformMat4(chit.hitNormal, vec4.fromValues(chit.modelHitPoint[0],chit.modelHitPoint[1],chit.modelHitPoint[2],0), this.normal2world);
+			chit.hitNormal[3] = 0;
+			vec4.normalize(chit.hitNormal, chit.hitNormal);
+
+			chit.surface = this.material;         // No.
+			inter.unshift(chit); 
+	if (g_flag2 < 100)
+		{
+			console.log("HIT   " + chit.hitPoint);
+			g_flag2++;
+		} 
+			return 1;
+		}if (g_flag < 100)
+		{
+			console.log(depth);
+			g_flag++;
+		} 
+
+		depth += distance;
+ 		
+		if (depth >= 50000)
+		{
+			//miss
+			return -1;
+		}
+	}
+	return -1;
+}
 function CImgBuf(wide, tall) {
 	//=============================================================================
 	// Construct an 'image-buffer' object to hold a floating-pt ray-traced image.
@@ -1083,15 +1322,27 @@ function CScene(scene) {
 	this.item.push(new CGeom(JT_SPHERE, GMAT_CHECKERBOARD));
 	//this.item[3].rayTranslate(0, 3, 3);
 	this.item[1].gapColor = vec4.fromValues(.05, .7, .6);
-	this.item[1].rayTranslate(0, 3, .7);
+	this.item[1].rayTranslate(-.63, 3, .7);
 	this.item[1].rayScale(1, 1, .7);
 	this.item.push(new CGeom(JT_SPHERE, GMAT_JADE));
 	this.item[2].gapColor = vec4.fromValues(.05, .7, .6);
-	this.item[2].rayTranslate(2, 4, 1);
+	this.item[2].rayTranslate(1.43, 4, 1);
 	
 	this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
 	this.item[3].rayTranslate(-2, 0, 1);
-	
+
+	this.item.push(new CGeom(JT_BOX, GMAT_PEARL));
+	this.item[4].rayTranslate(0, 0, 1);
+
+	this.item.push(new CGeom(JT_BOX, GMAT_GOLD));
+	this.item[5].rayTranslate(0, 0, 2.33);
+	this.item[5].rayRotate(Math.PI/5, 0, 0, 1);
+	this.item[5].rayScale(1, 1, .33);
+
+	this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
+	this.item[6].rayTranslate(0, 0, 3.33);
+	this.item[6].rayScale(1, 1, 1.33);
+
 	this.materials = [];
 	this.materials.push(new Material(MATL_JADE));
 	this.materials.push(new Material(MATL_TURQUOISE));
@@ -1102,17 +1353,17 @@ function CScene(scene) {
 	var lamp = new LightsT();
 	this.lights = [];
 	this.lights.push(lamp);
-	this.lights[0].I_pos = vec4.fromValues(-3, 10, 4, 1);
+	this.lights[0].I_pos = vec4.fromValues(-5, 10, 10, 1);
 	this.lights[0].I_ambi = vec3.fromValues(.2, .2, .2);
-	this.lights[0].I_diff = vec3.fromValues(1.5, .9, .8);
-	this.lights[0].I_spec = vec3.fromValues(1.0, .9, .8);
+	this.lights[0].I_diff = vec3.fromValues(1.2, .7, .7);
+	this.lights[0].I_spec = vec3.fromValues(1.2, .7, .7);
 
 	var lamp2 = new LightsT
 	this.lights.push(lamp2);
-	this.lights[1].I_pos = vec4.fromValues(5, 10, 4, 1);
+	this.lights[1].I_pos = vec4.fromValues(10, 10, 10, 1);
 	this.lights[1].I_ambi = vec3.fromValues(.2, .2, .2);
-	this.lights[1].I_diff = vec3.fromValues(.4, .4, .6);
-	this.lights[1].I_spec = vec3.fromValues(.4, .4, .8);
+	this.lights[1].I_diff = vec3.fromValues(.2, .2, .2);
+	this.lights[1].I_spec = vec3.fromValues(.2, .2, .2);
 }
 
 CScene.prototype.makeRayTracedImage = function () {
@@ -1338,6 +1589,15 @@ CScene.prototype.getFirstHit = function (ray, best) {
 		{
 			hit = this.item[i].traceSphere(ray, inter);
 		}
+		else if (this.item[i].shapeType == JT_BOX)
+		{
+			hit = this.item[i].traceBox(ray, inter);
+		}
+		else if (this.item[i].shapeType == 3)
+		{
+			hit = this.item[i].traceOctahedron(ray, inter);
+		}
+		
 		if (hit < 0) {
 			continue;
 			

@@ -69,7 +69,7 @@ var g_AAcode = 1;			// Antialiasing setting: 1 == NO antialiasing at all.
 var G_AA_MAX = 4;				// highest super-sampling number allowed. 
 var g_isJitter = 0;     // ==1 for jitter, ==0 for no jitter.
 
-var g_reflections = 1;
+var g_reflections = 3;
 //-----For animation & timing:---------------------
 var g_lastMS = Date.now();			// Timestamp (in milliseconds) for our 
                                 // most-recently-drawn WebGL screen contents.  
@@ -454,4 +454,29 @@ function onBrowserResize() {
  console.log('NEW g_canvas width,height=' +  
   						g_canvasID.width + ', ' + g_canvasID .height);		
  drawAll();     // re-draw browser contents using the new size.
+}
+
+function reflectionSubmit()
+{
+  var UsrTxt = document.getElementById('inter-reflections').value;	
+  g_reflections = parseInt(UsrTxt);
+  drawAll();
+}
+
+function lightPos0Submit()
+{
+  var UsrTxt = document.getElementById('lightPos0').value;	
+  var UsrTxtArray = JSON.parse("[" + UsrTxt + "]");
+  g_myScene.lights[0].I_pos[0] = UsrTxtArray[0];
+  g_myScene.lights[0].I_pos[1] = UsrTxtArray[1];
+  g_myScene.lights[0].I_pos[2] = UsrTxtArray[2];
+}
+
+function lightPos1Submit()
+{
+  var UsrTxt = document.getElementById('lightPos1').value;	
+  var UsrTxtArray = JSON.parse("[" + UsrTxt + "]");
+  g_myScene.lights[1].I_pos[0] = UsrTxtArray[0];
+  g_myScene.lights[1].I_pos[1] = UsrTxtArray[1];
+  g_myScene.lights[1].I_pos[2] = UsrTxtArray[2];
 }
