@@ -509,16 +509,16 @@ function onOffToggle1()
 {
   if (g_lampState1 == 1)
   {
-    diff_temp = g_myScene.lights[1].I_diff;
-    spec_temp = g_myScene.lights[1].I_spec;
+    diff_temp1 = g_myScene.lights[1].I_diff;
+    spec_temp1 = g_myScene.lights[1].I_spec;
     g_myScene.lights[1].I_diff = vec4.fromValues(0.0, 0.0, 0.0);
     g_myScene.lights[1].I_spec = vec4.fromValues(0.0, 0.0, 0.0);
     g_lampState1 = 0;
   }
   else
   {
-    g_myScene.lights[1].I_diff = diff_temp;
-    g_myScene.lights[1].I_spec = spec_temp;
+    g_myScene.lights[1].I_diff = diff_temp1;
+    g_myScene.lights[1].I_spec = spec_temp1;
     g_lampState1 = 1;
   }
 }

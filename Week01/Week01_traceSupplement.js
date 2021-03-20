@@ -1298,8 +1298,8 @@ function CScene(scene) {
 	this.lights.push(lamp2);
 	this.lights[1].I_pos = vec4.fromValues(10, 10, 10, 1);
 	this.lights[1].I_ambi = vec3.fromValues(.2, .2, .2);
-	this.lights[1].I_diff = vec3.fromValues(.2, .2, .2);
-	this.lights[1].I_spec = vec3.fromValues(.2, .2, .2);
+	this.lights[1].I_diff = vec3.fromValues(.3, .3, .35);
+	this.lights[1].I_spec = vec3.fromValues(.3, .3, .35);
 	this.item = [];
 	//this.item.push(new CGeom(JT_GNDPLANE));
 	//this.item[0].rayRotate(.12*Math.PI, 1, 1, 0);
