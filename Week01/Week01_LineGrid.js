@@ -47,7 +47,9 @@ var g_canvasID;									// HTML-5 'canvas' element ID#
 //-----Mouse,keyboard, GUI variables-----------
 var gui = new GUIbox(); // Holds all (Graphical) User Interface fcns & vars, for
                         // keyboard, mouse, HTML buttons, window re-sizing, etc.
-var g_SceneNum = 1;			// scene-selector number; 0,1,2,... G_SCENE_MAX-1                        
+var g_SceneNum = 0;			// scene-selector number; 0,1,2,... G_SCENE_MAX-1    
+var g_random = []; 
+var g_random2 = [];                   
 //-----For the VBOs & Shaders:-----------------
 preView = new VBObox0();		// For WebGLpreview: holds one VBO and its shaders
 rayView = new VBObox1();		// for displaying the ray-tracing results.

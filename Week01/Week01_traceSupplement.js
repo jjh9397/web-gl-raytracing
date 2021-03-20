@@ -1375,6 +1375,82 @@ function CScene(scene) {
 		this.item[6].rayTranslate(-1, 6, 1);
 		this.item[6].rayScale(1, 1, 1);
 	}
+	else if (g_SceneNum == 2)
+	{
+		this.item = [];
+		this.item.push(new CGeom(JT_GNDPLANE));
+
+		this.item.push(new CGeom(JT_BOX, GMAT_PEARL));
+		this.item[1].rayTranslate(0, 0, 3);
+		this.item[1].rayRotate(Math.PI / 4, -1, 0, 0);
+		this.item[1].rayRotate(Math.PI / 4, 0, 0, -1);
+		this.item[1].rayScale(1, 1, 1);
+
+		this.item.push(new CGeom(JT_BOX, GMAT_GOLD));
+		this.item[2].rayTranslate(0, -5, 5);
+		//this.item[2].rayRotate(Math.PI / 4, 0, 0, -1);
+		this.item[2].rayScale(3, 3, 3);
+
+		this.item.push(new CGeom(JT_BOX, GMAT_JADE));
+		this.item[3].rayTranslate(0, 0, 4.5);
+		this.item[3].rayRotate(Math.PI / 4, -1, 0, 0);
+		this.item[3].rayRotate(Math.PI / 4, 0, 0, -1);
+		this.item[3].rayScale(.5, .5, .5);
+
+		this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
+		this.item[4].rayTranslate(0, 2, 1.5);
+		this.item[4].rayScale(1.5, 1.5, 1);
+
+		this.item.push(new CGeom(JT_SPHERE, GMAT_GOLD));
+		this.item[5].rayTranslate(0, 3, 1.3);
+		this.item[5].rayScale(1, 1, 1);
+
+		this.item.push(new CGeom(JT_SPHERE, GMAT_SILVER));
+		this.item[6].rayTranslate(0, 4, 1);
+		this.item[6].rayScale(.2, 1, 1); 
+	}
+	else if (g_SceneNum == 3)
+	{
+		this.item = [];
+		this.item.push(new CGeom(JT_GNDPLANE));
+
+		var i = 1;
+		for (var row = 0; row < 5; row++)
+		{
+			for (var col = 0; col < 5; col++, i++)
+			{
+				//console.log(i);
+				var mat = Math.floor(Math.random() * 5);
+				var x = Math.floor(Math.random() * 7) - 3;
+				var y = Math.floor(Math.random() * 7) - 3;
+				var z = Math.floor(Math.random() * 5);
+				//g_random.push(mat);
+				g_random.push(x);
+				g_random.push(y);
+				g_random.push(z);
+				this.item.push(new CGeom(JT_SPHERE, mat));
+				this.item[i].rayTranslate(col*2 - 5 + x, row*2 - 5 + y, 1 + z);
+			}
+		}
+
+		for (var row = 0; row < 3; row++)
+		{
+			for (var col = 0; col < 3; col++, i++)
+			{
+				//console.log(i);
+				var mat = Math.floor(Math.random() * 5);
+				var x = Math.floor(Math.random() * 7) - 3;
+				var y = Math.floor(Math.random() * 7) - 3;
+				var z = Math.floor(Math.random() * 5);
+				//g_random.push(mat);
+				g_random2.push(x);
+				g_random2.push(y);
+				g_random2.push(z);
+				this.item.push(new CGeom(JT_BOX, mat));
+				this.item[i].rayTranslate(col*2 - 5 + x, row*2 - 5 + y, 1 + z);
+			}
+		}
+	}
 }
 
 CScene.prototype.makeRayTracedImage = function () {

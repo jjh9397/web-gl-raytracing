@@ -794,6 +794,8 @@ VBObox0.prototype.draw = function() {
   //  this.beginGrid, 								// location of 1st vertex to draw;
   //  this.beginSphere);		// number of vertices to draw on-screen.
 
+  if (g_SceneNum == 0)
+  {
   mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(-.63, 3.0, .7));
   mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(1.0, 1.0, .7));
   // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
@@ -895,6 +897,217 @@ VBObox0.prototype.draw = function() {
                   //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
                   this.beginCube, 								// location of 1st vertex to draw;
                   this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.
+  }
+  else if (g_SceneNum == 1)
+  {
+    mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 0.0, 3));
+    mat4.rotate(this.mvpMat, this.mvpMat, Math.PI/4, vec4.fromValues(0.0, 0.0, 1.0));
+                mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(0.1, 5.0, 3.0));
+                // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+                gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                    false, 				// use matrix transpose instead?
+                                    this.mvpMat);	// send data from Javascript.
+                mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+                gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                  // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                  //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                  this.beginCube, 								// location of 1st vertex to draw;
+                  this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.
+ mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 0.0, 3));
+ mat4.rotate(this.mvpMat, this.mvpMat, Math.PI/4, vec4.fromValues(0.0, 0.0, -1.0));
+                  mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(0.1, 5.0, 3.0));
+                  // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+                  gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                      false, 				// use matrix transpose instead?
+                                      this.mvpMat);	// send data from Javascript.
+                  mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+                  gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                    // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                    //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                    this.beginCube, 								// location of 1st vertex to draw;
+                    this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.
+       mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 2.0, 3.5));
+    mat4.rotate(this.mvpMat, this.mvpMat, Math.PI/4, vec4.fromValues(-1.0, 0.0, 0.0));
+    mat4.rotate(this.mvpMat, this.mvpMat, Math.PI/4, vec4.fromValues(0.0, 0.0, -1.0));
+                    mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(0.5, .5, .5));
+                    // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+                    gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                        false, 				// use matrix transpose instead?
+                                        this.mvpMat);	// send data from Javascript.
+                    mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+                    gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                      // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                      //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                      this.beginCube, 								// location of 1st vertex to draw;
+                      this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.  
+  
+  mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 3.0, 1.5));
+  mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(1.5, 1.5, 1.5));
+  // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+  gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                      false, 				// use matrix transpose instead?
+                      this.mvpMat);	// send data from Javascript.
+  mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+  gl.drawArrays(gl.LINES, 	    // select the drawing primitive to draw,
+    // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+    //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+    this.beginSphere, 								// location of 1st vertex to draw;
+    this.beginCube - this.beginSphere);		// number of vertices to draw on-screen.  
+  
+    mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(1.5, 6.0, 1));
+            mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(1.5, 1.5, 1.5));
+            // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+            gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                false, 				// use matrix transpose instead?
+                                this.mvpMat);	// send data from Javascript.
+            mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+            gl.drawArrays(gl.LINES, 	    // select the drawing primitive to draw,
+              // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+              //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+              this.beginSphere, 								// location of 1st vertex to draw;
+              this.beginCube - this.beginSphere);		// number of vertices to draw on-screen.
+
+              mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(-1.0, 6.0, 1));
+              mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(1.0, 1.0, 1));
+              // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+              gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                  false, 				// use matrix transpose instead?
+                                  this.mvpMat);	// send data from Javascript.
+              mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+              gl.drawArrays(gl.LINES, 	    // select the drawing primitive to draw,
+                // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                this.beginSphere, 								// location of 1st vertex to draw;
+                this.beginCube - this.beginSphere);		// number of vertices to draw on-screen.
+
+
+
+   }
+   else if (g_SceneNum == 2)
+  {
+    mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 0.0, 3));
+    mat4.rotate(this.mvpMat, this.mvpMat, Math.PI/4, vec4.fromValues(-1.0, 0.0, 0.0));
+    mat4.rotate(this.mvpMat, this.mvpMat, Math.PI/4, vec4.fromValues(0.0, 0.0, -1.0));
+                // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+                gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                    false, 				// use matrix transpose instead?
+                                    this.mvpMat);	// send data from Javascript.
+                mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+                gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                  // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                  //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                  this.beginCube, 								// location of 1st vertex to draw;
+                  this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.
+ mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, -5, 5));
+                  mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(3, 3, 3.0));
+                  // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+                  gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                      false, 				// use matrix transpose instead?
+                                      this.mvpMat);	// send data from Javascript.
+                  mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+                  gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                    // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                    //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                    this.beginCube, 								// location of 1st vertex to draw;
+                    this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.
+       mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, .0, 4.5));
+    mat4.rotate(this.mvpMat, this.mvpMat, Math.PI/4, vec4.fromValues(-1.0, 0.0, 0.0));
+    mat4.rotate(this.mvpMat, this.mvpMat, Math.PI/4, vec4.fromValues(0.0, 0.0, -1.0));
+                    mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(0.5, .5, .5));
+                    // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+                    gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                        false, 				// use matrix transpose instead?
+                                        this.mvpMat);	// send data from Javascript.
+                    mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+                    gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                      // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                      //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                      this.beginCube, 								// location of 1st vertex to draw;
+                      this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.  
+  
+  mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 2.0, 1.5));
+  mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(1.5, 1.5, 1));
+  // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+  gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                      false, 				// use matrix transpose instead?
+                      this.mvpMat);	// send data from Javascript.
+  mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+  gl.drawArrays(gl.LINES, 	    // select the drawing primitive to draw,
+    // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+    //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+    this.beginSphere, 								// location of 1st vertex to draw;
+    this.beginCube - this.beginSphere);		// number of vertices to draw on-screen.  
+  
+    mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0, 3.0, 1.3));
+            mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(1, 1, 1));
+            // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+            gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                false, 				// use matrix transpose instead?
+                                this.mvpMat);	// send data from Javascript.
+            mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+            gl.drawArrays(gl.LINES, 	    // select the drawing primitive to draw,
+              // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+              //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+              this.beginSphere, 								// location of 1st vertex to draw;
+              this.beginCube - this.beginSphere);		// number of vertices to draw on-screen.
+
+              mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(0.0, 4.0, 1));
+              mat4.scale(this.mvpMat, this.mvpMat, vec4.fromValues(.2, 1.0, 1));
+              // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+              gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                  false, 				// use matrix transpose instead?
+                                  this.mvpMat);	// send data from Javascript.
+              mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+              gl.drawArrays(gl.LINES, 	    // select the drawing primitive to draw,
+                // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                this.beginSphere, 								// location of 1st vertex to draw;
+                this.beginCube - this.beginSphere);		// number of vertices to draw on-screen.
+   }
+   else if (g_SceneNum == 3)
+  {
+    var i = 0;
+		for (var row = 0; row < 5; row++)
+		{
+			for (var col = 0; col < 5; col++, i+=3)
+			{
+				mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(col*2 - 5 + g_random[i], row*2 - 5 + g_random[i+1], 1 + g_random[i+2]));
+              // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+              gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                  false, 				// use matrix transpose instead?
+                                  this.mvpMat);	// send data from Javascript.
+              mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+              gl.drawArrays(gl.LINES, 	    // select the drawing primitive to draw,
+                // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                this.beginSphere, 								// location of 1st vertex to draw;
+                this.beginCube - this.beginSphere);		// number of vertices to draw on-screen.
+			}
+		}
+    var i = 0;
+		for (var row = 0; row < 3; row++)
+		{
+			for (var col = 0; col < 3; col++, i+=3)
+			{
+        mat4.translate(this.mvpMat, this.mvpMat, vec4.fromValues(col*2 - 5 + g_random2[i], row*2 - 5 + g_random2[i+1], 1 + g_random2[i+2]));
+                    // Send  new 'ModelMat' values to the GPU's 'u_ModelMat1' uniform: 
+                    gl.uniformMatrix4fv(this.u_mvpMatLoc,	// GPU location of the uniform
+                                        false, 				// use matrix transpose instead?
+                                        this.mvpMat);	// send data from Javascript.
+                    mat4.copy(this.mvpMat, tmp);      // restore world-space mvpMat values.
+                    gl.drawArrays(gl.TRIANGLES, 	    // select the drawing primitive to draw,
+                      // choices: gl.POINTS, gl.LINES, gl.LINE_STRIP, gl.LINE_LOOP, 
+                      //          gl.TRIANGLES, gl.TRIANGLE_STRIP, ...
+                      this.beginCube, 								// location of 1st vertex to draw;
+                      this.vboVerts - this.beginCube);		// number of vertices to draw on-screen.
+			}
+		}
+
+
+
+
+
+   }
 }
 
 VBObox0.prototype.reload = function() {
